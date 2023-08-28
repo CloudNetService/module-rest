@@ -4,7 +4,7 @@
 juppiter = "0.4.0"
 spotless = "6.20.0"
 nexusPublish = "2.0.0-rc-1"
-checkstyleTools = "10.12.2"
+checkstyleTools = "10.12.3"
 
 # testing
 junit = "5.10.0"
