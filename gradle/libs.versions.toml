@@ -16,7 +16,7 @@ lombok = "1.18.28"
 
 # runtime dependencies
 gson = "2.10.1"
-jjwt = "0.11.5"
+jjwt = "0.12.5"
 slf4j = "2.0.7"
 guava = "32.1.2-jre"
 annotations = "24.0.1"
