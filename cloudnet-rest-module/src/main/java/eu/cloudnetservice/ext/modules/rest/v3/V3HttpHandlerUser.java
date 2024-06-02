@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.document.Document;
+import eu.cloudnetservice.ext.modules.rest.UUIDv7;
 import eu.cloudnetservice.ext.modules.rest.auth.DefaultRestUser;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -28,16 +29,21 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import io.leangen.geantyref.TypeFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Type;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Set;
 import lombok.NonNull;
+import org.hibernate.validator.constraints.UUID;
 
 @Singleton
+@EnableValidation
 public final class V3HttpHandlerUser {
 
   private static final Type SET_STRING_TYPE = TypeFactory.parameterizedClass(Set.class, String.class);
@@ -49,6 +55,16 @@ public final class V3HttpHandlerUser {
     this.restUserManagement = restUserManagement;
   }
 
+  @RequestHandler(path = "/api/v3/user", method = HttpMethod.GET)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:user_read", "cloudnet_rest:user_get_all"})
+  public @NonNull IntoResponse<?> handleRestUserList() {
+    return JsonResponse.builder().body(Map.of("users", this.restUserManagement.users()
+      .stream()
+      .map(IntoResponse::intoResponse)
+      .map(Response::body)
+      .toList()));
+  }
+
   @RequestHandler(path = "/api/v3/user", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleRestUserCreation(
     @NonNull @Authentication(
@@ -56,11 +72,11 @@ public final class V3HttpHandlerUser {
       scopes = {"cloudnet_rest:user_write", "cloudnet_rest:user_create"}) RestUser user,
     @NonNull @RequestTypedBody Document body
   ) {
-    var id = body.getString("id");
+    var username = body.getString("username");
     var password = body.getString("password");
     Set<String> scopes = body.readObject("scopes", SET_STRING_TYPE);
 
-    if (id == null || scopes == null || password == null) {
+    if (username == null || scopes == null || password == null) {
       return ProblemDetail.builder()
         .type("invalid-rest-user-body")
         .title("Invalid Rest User Body")
@@ -68,12 +84,12 @@ public final class V3HttpHandlerUser {
         .detail("The request body does not contain the required properties.");
     }
 
-    if (this.restUserManagement.restUser(id) != null) {
+    if (this.restUserManagement.restUserByUsername(username) != null) {
       return ProblemDetail.builder()
         .type("rest-user-already-exists")
         .title("Rest User Already Exists")
         .status(HttpResponseCode.BAD_REQUEST)
-        .detail("There already is a rest user with the provided id: %s".formatted(id));
+        .detail("There already is a rest user with the provided username: %s".formatted(username));
     }
 
     // setting scopes while creating a user is only allowed for users with the global admin scope
@@ -97,7 +113,13 @@ public final class V3HttpHandlerUser {
       }
     }
 
-    var constructedUser = DefaultRestUser.builder().id(id).scopes(scopes).password(password).build();
+    var constructedUser = DefaultRestUser.builder()
+      .scopes(scopes)
+      .username(username)
+      .createdAt(OffsetDateTime.now())
+      .createdBy(user.username())
+      .password(password)
+      .build();
     this.restUserManagement.saveRestUser(constructedUser);
 
     return JsonResponse.builder().body(constructedUser);
@@ -105,8 +127,10 @@ public final class V3HttpHandlerUser {
 
   @RequestHandler(path = "/api/v3/user/{uniqueId}", method = HttpMethod.GET)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:user_read", "cloudnet_rest:user_get"})
-  public @NonNull IntoResponse<?> handleGetUser(@NonNull @RequestPathParam("uniqueId") String id) {
-    var restUser = this.restUserManagement.restUser(id);
+  public @NonNull IntoResponse<?> handleGetUser(
+    @NonNull @RequestPathParam("uniqueId") @UUID(version = 7) String id
+  ) {
+    var restUser = this.restUserManagement.restUser(java.util.UUID.fromString(id));
     if (restUser == null) {
       return ProblemDetail.builder()
         .type("rest-user-not-found")
@@ -115,32 +139,34 @@ public final class V3HttpHandlerUser {
         .detail("There is no rest user with the provided id: %s".formatted(id));
     }
 
-    var strippedUser = this.restUserManagement.builder(restUser).properties(Map.of()).build();
-    return JsonResponse.builder().body(strippedUser);
+    return JsonResponse.builder().body(restUser);
   }
 
   @RequestHandler(path = "/api/v3/user/{uniqueId}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:user_write", "cloudnet_rest:user_delete"})
-  public @NonNull IntoResponse<?> handleDeleteUser(@NonNull @RequestPathParam("uniqueId") String id) {
-    this.restUserManagement.deleteRestUser(id);
+  public @NonNull IntoResponse<?> handleDeleteUser(
+    @NonNull @RequestPathParam("uniqueId") @UUID(version = 7) String id
+  ) {
+    this.restUserManagement.deleteRestUser(UUIDv7.fromString(id));
     return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/user/{uniqueId}", method = HttpMethod.PUT)
-
   public @NonNull IntoResponse<?> handleUpdateUser(
     @NonNull @Authentication(
       providers = "jwt",
       scopes = {"cloudnet_rest:user_write", "cloudnet_rest:user_update"}) RestUser requestSender,
-    @NonNull @RequestPathParam("uniqueId") String id,
+    @NonNull @RequestPathParam("uniqueId") @UUID(version = 7) String id,
     @NonNull @RequestTypedBody Document body
   ) {
-    var updateId = body.getString("id");
+    var uniqueId = UUIDv7.fromString(id);
+
+    var username = body.getString("username");
     var password = body.getString("password");
     Set<String> scopes = body.readObject("scopes", SET_STRING_TYPE);
 
     // at least one value has to be present so that we can do an update
-    if (updateId == null && scopes == null && password == null) {
+    if (username == null && scopes == null && password == null) {
       return ProblemDetail.builder()
         .type("missing-rest-user-update")
         .title("Missing Rest User Update")
@@ -149,8 +175,8 @@ public final class V3HttpHandlerUser {
     }
 
     // these modification will require extra permissions if the user is not editing himself
-    var ownUser = id.equals(requestSender.id());
-    if (!ownUser && (updateId != null || password != null)) {
+    var ownUser = uniqueId.equals(requestSender.id());
+    if (!ownUser && (username != null || password != null)) {
       if (!requestSender.hasScope(RestUser.GLOBAL_ADMIN_SCOPE)) {
         return ProblemDetail.builder()
           .type("missing-rest-user-update-scopes")
@@ -160,7 +186,7 @@ public final class V3HttpHandlerUser {
       }
     }
 
-    var restUser = this.restUserManagement.restUser(id);
+    var restUser = this.restUserManagement.restUser(uniqueId);
     if (restUser == null) {
       return ProblemDetail.builder()
         .type("rest-user-not-found")
@@ -169,17 +195,17 @@ public final class V3HttpHandlerUser {
         .detail("There is no rest user with the provided id: %s".formatted(id));
     }
 
-    if (updateId != null && this.restUserManagement.restUser(updateId) != null) {
+    if (username != null && this.restUserManagement.restUserByUsername(username) != null) {
       return ProblemDetail.builder()
         .type("rest-user-already-exists")
         .title("Rest User Already Exists")
         .status(HttpResponseCode.BAD_REQUEST)
-        .detail("There already is a rest user with the provided id: %s".formatted(id));
+        .detail("There already is a rest user with the provided username: %s".formatted(username));
     }
 
     var builder = DefaultRestUser.builder(restUser);
-    if (updateId != null) {
-      builder.id(updateId);
+    if (username != null) {
+      builder.username(username);
     }
 
     if (password != null) {
@@ -210,14 +236,9 @@ public final class V3HttpHandlerUser {
       builder.scopes(scopes);
     }
 
-    // delete the old user as an update is just delete -> recreate
-    this.restUserManagement.deleteRestUser(id);
-
-    var updatedUser = builder.build();
-    this.restUserManagement.saveRestUser(updatedUser);
-
-    // we don't want to display the properties (contains password and jwt infos)
-    return JsonResponse.builder().body(builder.properties(Map.of()).build());
+    var user = builder.modifiedAt(OffsetDateTime.now()).modifiedBy(requestSender.username()).build();
+    this.restUserManagement.saveRestUser(user);
+    return JsonResponse.builder().body(user);
   }
 
   private boolean checkScopeValidity(@NonNull String scope) {

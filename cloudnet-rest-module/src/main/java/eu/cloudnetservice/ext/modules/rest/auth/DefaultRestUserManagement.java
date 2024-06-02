@@ -26,15 +26,18 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.node.database.LocalDatabase;
 import eu.cloudnetservice.node.database.NodeDatabaseProvider;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.UUID;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 public final class DefaultRestUserManagement implements RestUserManagement {
 
   private static final String REST_USER_DB_NAME = "cloudnet_rest_users";
 
   private final LocalDatabase localDatabase;
-  private final LoadingCache<String, RestUser> restUserCache;
+  private final LoadingCache<UUID, RestUser> restUserCache;
 
   public DefaultRestUserManagement() {
     this(InjectionLayer.ext().instance(NodeDatabaseProvider.class));
@@ -51,7 +54,7 @@ public final class DefaultRestUserManagement implements RestUserManagement {
       .scheduler(Scheduler.systemScheduler())
       .expireAfterWrite(Duration.ofMinutes(5))
       .build(key -> {
-        var userDocument = this.localDatabase.get(key);
+        var userDocument = this.localDatabase.get(key.toString());
         return userDocument == null ? null : userDocument.toInstanceOf(DefaultRestUser.class);
       });
   }
@@ -60,8 +63,44 @@ public final class DefaultRestUserManagement implements RestUserManagement {
    * {@inheritDoc}
    */
   @Override
-  public @Nullable RestUser restUser(@NonNull String id) {
+  public @Nullable RestUser restUser(@NonNull UUID id) {
     return this.restUserCache.get(id);
+  }
+
+  @Override
+  public @Nullable RestUser restUserByUsername(@NonNull String username) {
+    var cache = this.restUserCache.asMap();
+    var user = cache.values().stream()
+      .filter(restUser -> restUser.username().equals(username))
+      .findAny()
+      .orElse(null);
+
+    // found the user in the local cache
+    if (user != null) {
+      return user;
+    }
+
+    user = this.localDatabase.find("username", username).stream()
+      .findFirst()
+      .map(document -> document.toInstanceOf(DefaultRestUser.class))
+      .orElse(null);
+
+    // user found in database, store in cache
+    if (user != null) {
+      this.restUserCache.put(user.id(), user);
+    }
+
+    return user;
+  }
+
+  @Override
+  public @NonNull @UnmodifiableView Collection<RestUser> users() {
+    return this.localDatabase.documents()
+      .stream()
+      .map(document -> document.toInstanceOf(DefaultRestUser.class))
+      .map(user -> (RestUser) user)
+      .peek(user -> this.restUserCache.put(user.id(), user))
+      .toList();
   }
 
   /**
@@ -69,29 +108,34 @@ public final class DefaultRestUserManagement implements RestUserManagement {
    */
   @Override
   public void saveRestUser(@NonNull RestUser user) {
-    this.restUserCache.invalidate(user.id());
-    this.localDatabase.insert(user.id(), DocumentFactory.json().newDocument(user));
+    this.restUserCache.put(user.id(), user);
+    this.localDatabase.insert(user.id().toString(), DocumentFactory.json().newDocument(user));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean deleteRestUser(@NonNull String id) {
+  public boolean deleteRestUser(@NonNull UUID id) {
     this.restUserCache.invalidate(id);
-    return this.localDatabase.delete(id);
+    return this.localDatabase.delete(id.toString());
   }
 
   @Override
-  public @NonNull RestUser.Builder builder() {
+  public @NonNull DefaultRestUser.Builder builder() {
     return new DefaultRestUser.Builder();
   }
 
   @Override
-  public @NonNull RestUser.Builder builder(@NonNull RestUser restUser) {
+  public @NonNull DefaultRestUser.Builder builder(@NonNull RestUser restUser) {
     return this.builder()
       .id(restUser.id())
       .scopes(restUser.scopes())
+      .username(restUser.username())
+      .createdAt(restUser.createdAt())
+      .createdBy(restUser.createdBy())
+      .modifiedAt(restUser.modifiedAt())
+      .modifiedBy(restUser.modifiedBy())
       .properties(restUser.properties());
   }
 }

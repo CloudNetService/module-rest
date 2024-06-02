@@ -34,6 +34,7 @@ import eu.cloudnetservice.node.command.source.CommandSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -55,10 +56,10 @@ public final class RestCommand {
 
   @Parser
   public @NonNull DefaultRestUser defaultRestUserParser(@NonNull CommandContext<?> $, @NonNull Queue<String> input) {
-    var userName = input.remove();
-    var user = this.restUserManagement.restUser(userName);
+    var username = input.remove();
+    var user = this.restUserManagement.restUserByUsername(username);
     if (user == null) {
-      throw new ArgumentNotAvailableException(I18n.trans("module-rest-user-not-found", userName));
+      throw new ArgumentNotAvailableException(I18n.trans("module-rest-user-not-found", username));
     }
 
     // this implementation is based on our rest user implementation
@@ -74,7 +75,7 @@ public final class RestCommand {
   @Parser(name = "restUserScope")
   public @NonNull String restUserScopeParser(@NonNull CommandContext<?> $, @NonNull Queue<String> input) {
     var scope = input.remove();
-    if (scope.equalsIgnoreCase("admin") || RestUser.SCOPE_NAMING_PATTERN.matcher(scope).matches()) {
+    if (RestUser.SCOPE_NAMING_PATTERN.matcher(scope).matches()) {
       return scope;
     }
 
@@ -84,96 +85,118 @@ public final class RestCommand {
       scope));
   }
 
-  @CommandMethod("rest user create <id> <password>")
+  @Parser(name = "restUserUsername")
+  public @NonNull String restUserUsernameParser(@NonNull CommandContext<?> $, @NonNull Queue<String> input) {
+    var username = input.remove();
+    if (RestUser.USER_NAMING_PATTERN.matcher(username).matches()) {
+      return username;
+    }
+
+    throw new ArgumentNotAvailableException(I18n.trans(
+      "argument-parse-failure-regex",
+      RestUser.USER_NAMING_PATTERN.pattern(),
+      username));
+  }
+
+  @CommandMethod("rest user create <username> <password>")
   public void createRestUser(
     @NonNull CommandSource source,
-    @Argument("id") @NonNull String userId,
+    @Argument(value = "username", parserName = "restUserUsername") @NonNull String username,
     @Argument("password") @NonNull String password
   ) {
-    if (this.restUserManagement.restUser(userId) != null) {
-      source.sendMessage(I18n.trans("module-rest-user-already-existing", userId));
+    if (this.restUserManagement.restUserByUsername(username) != null) {
+      source.sendMessage(I18n.trans("module-rest-user-already-existing", username));
       return;
     }
 
     // use the default rest user here as it provides a password setter
-    var user = DefaultRestUser.builder().id(userId).password(password).build();
+    var user = DefaultRestUser.builder()
+      .createdAt(OffsetDateTime.now())
+      .createdBy(source.name())
+      .username(username)
+      .password(password)
+      .build();
     this.restUserManagement.saveRestUser(user);
 
-    source.sendMessage(I18n.trans("module-rest-user-create-successful", userId));
+    source.sendMessage(I18n.trans("module-rest-user-create-successful", username));
   }
 
-  @CommandMethod("rest user delete <id>")
-  public void deleteRestUser(@NonNull CommandSource source, @Argument("id") @NonNull DefaultRestUser restUser) {
+  @CommandMethod("rest user delete <username>")
+  public void deleteRestUser(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
     this.restUserManagement.deleteRestUser(restUser.id());
-    source.sendMessage(I18n.trans("module-rest-user-delete-successful", restUser.id()));
+    source.sendMessage(I18n.trans("module-rest-user-delete-successful", restUser.username()));
   }
 
-  @CommandMethod("rest user <id>")
-  public void displayUser(@NonNull CommandSource source, @Argument("id") @NonNull DefaultRestUser restUser) {
-    source.sendMessage("RestUser " + restUser.id());
+  @CommandMethod("rest user <username>")
+  public void displayUser(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
+    source.sendMessage("RestUser " + restUser.id() + ":" + restUser.username());
     source.sendMessage("Scopes:");
     for (var scope : restUser.scopes()) {
       source.sendMessage(" - " + scope);
     }
   }
 
-  @CommandMethod("rest user <id> add scope <scope>")
+  @CommandMethod("rest user <username> add scope <scope>")
   public void addScope(
     @NonNull CommandSource source,
-    @Argument("id") @NonNull DefaultRestUser restUser,
+    @Argument("username") @NonNull DefaultRestUser restUser,
     @Argument(value = "scope", parserName = "restUserScope") @NonNull String scope
   ) {
-    this.updateRestUser(restUser, builder -> builder.scope(scope));
-    source.sendMessage(I18n.trans("module-rest-user-add-scope-successful", restUser.id(), scope));
+    this.updateRestUser(source, restUser, builder -> builder.scope(scope));
+    source.sendMessage(I18n.trans("module-rest-user-add-scope-successful", restUser.username(), scope));
   }
 
-  @CommandMethod("rest user <id> clear scopes")
-  public void clearScopes(@NonNull CommandSource source, @Argument("id") @NonNull DefaultRestUser restUser) {
-    this.updateRestUser(restUser, builder -> builder.scopes(Set.of()));
-    source.sendMessage(I18n.trans("module-rest-user-clear-scopes-successful", restUser.id()));
+  @CommandMethod("rest user <username> clear scopes")
+  public void clearScopes(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
+    this.updateRestUser(source, restUser, builder -> builder.scopes(Set.of()));
+    source.sendMessage(I18n.trans("module-rest-user-clear-scopes-successful", restUser.username()));
   }
 
-  @CommandMethod("rest user <id> remove scope <scope>")
+  @CommandMethod("rest user <username> remove scope <scope>")
   public void removeScope(
     @NonNull CommandSource source,
-    @Argument("id") @NonNull DefaultRestUser restUser,
+    @Argument("username") @NonNull DefaultRestUser restUser,
     @Argument("scope") @NonNull String scope
   ) {
-    this.updateRestUser(restUser, builder -> builder.modifyScopes(scopes -> scopes.remove(scope)));
-    source.sendMessage(I18n.trans("module-rest-user-remove-scope-successful", restUser.id(), scope));
+    this.updateRestUser(source, restUser, builder -> builder.modifyScopes(scopes -> scopes.remove(scope)));
+    source.sendMessage(I18n.trans("module-rest-user-remove-scope-successful", restUser.username(), scope));
   }
 
-  @CommandMethod("rest user <id> set password <password>")
+  @CommandMethod("rest user <username> set password <password>")
   public void setPassword(
     @NonNull CommandSource source,
-    @Argument("id") @NonNull DefaultRestUser restUser,
+    @Argument("username") @NonNull DefaultRestUser restUser,
     @Argument("password") @NonNull String password
   ) {
-    this.updateRestUser(restUser, builder -> builder.password(password));
-    source.sendMessage(I18n.trans("module-rest-user-password-changed", restUser.id()));
+    this.updateRestUser(source, restUser, builder -> builder.password(password));
+    source.sendMessage(I18n.trans("module-rest-user-password-changed", restUser.username()));
   }
 
-  @CommandMethod("rest user <id> verifyPassword <password>")
+  @CommandMethod("rest user <username> verifyPassword <password>")
   public void verifyPassword(
     @NonNull CommandSource source,
-    @Argument("id") @NonNull DefaultRestUser restUser,
+    @Argument("username") @NonNull DefaultRestUser restUser,
     @Argument("password") @NonNull String password
   ) {
     if (this.authProvider instanceof BasicAuthProvider basicAuthProvider) {
       var valid = basicAuthProvider.validatePassword(restUser, password.getBytes(StandardCharsets.UTF_8));
       if (valid) {
-        source.sendMessage(I18n.trans("module-rest-user-password-match", restUser.id()));
+        source.sendMessage(I18n.trans("module-rest-user-password-match", restUser.username()));
       } else {
-        source.sendMessage(I18n.trans("module-rest-user-password-mismatch", restUser.id()));
+        source.sendMessage(I18n.trans("module-rest-user-password-mismatch", restUser.username()));
       }
     } else {
       source.sendMessage(I18n.trans("module-rest-user-verify-basic-auth-provider-missing"));
     }
   }
 
-  private void updateRestUser(@NonNull DefaultRestUser user, @NonNull Consumer<DefaultRestUser.Builder> consumer) {
+  private void updateRestUser(
+    @NonNull CommandSource source,
+    @NonNull DefaultRestUser user,
+    @NonNull Consumer<DefaultRestUser.Builder> consumer
+  ) {
     var builder = DefaultRestUser.builder(user);
     consumer.accept(builder);
-    this.restUserManagement.saveRestUser(builder.build());
+    this.restUserManagement.saveRestUser(builder.modifiedAt(OffsetDateTime.now()).modifiedBy(source.name()).build());
   }
 }

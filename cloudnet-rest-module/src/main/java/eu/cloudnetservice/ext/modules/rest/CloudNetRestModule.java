@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest;
 
 import dev.derklaro.aerogel.binding.BindingBuilder;
+import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.common.log.LogManager;
 import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.driver.document.DocumentFactory;
@@ -54,6 +55,11 @@ import lombok.NonNull;
 public final class CloudNetRestModule extends DriverModule {
 
   private static final Logger LOGGER = LogManager.logger(CloudNetRestModule.class);
+
+  @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.LOADED)
+  public void loadLanguageFile() {
+    I18n.loadFromLangPath(this.getClass());
+  }
 
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
   public void initHttpServer(@NonNull InjectionLayer<?> injectionLayer) {

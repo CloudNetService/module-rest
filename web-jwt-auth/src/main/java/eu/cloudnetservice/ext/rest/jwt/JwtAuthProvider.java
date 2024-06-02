@@ -141,7 +141,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
 
       // validate the token subject
       var subject = token.getPayload().getSubject();
-      var user = management.restUser(subject);
+      var user = management.restUser(UUID.fromString(subject));
       if (user == null) {
         return AuthenticationResult.Constant.USER_NOT_FOUND;
       }
@@ -161,7 +161,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
       } else {
         return AuthenticationResult.Constant.INVALID_CREDENTIALS;
       }
-    } catch (JwtException | JsonSyntaxException exception) {
+    } catch (JwtException | JsonSyntaxException | IllegalArgumentException exception) {
       return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
   }
@@ -217,7 +217,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     var expiration = Instant.now().plus(validDuration);
     var jwtToken = Jwts.builder()
       .issuer(this.issuer)
-      .subject(subject.id())
+      .subject(subject.id().toString())
       .issuedAt(new Date())
       .expiration(Date.from(expiration))
       .id(tokenId)

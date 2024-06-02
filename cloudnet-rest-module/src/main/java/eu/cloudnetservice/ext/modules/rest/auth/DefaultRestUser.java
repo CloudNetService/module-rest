@@ -18,34 +18,58 @@ package eu.cloudnetservice.ext.modules.rest.auth;
 
 import com.google.common.base.Preconditions;
 import eu.cloudnetservice.common.util.StringUtil;
+import eu.cloudnetservice.ext.modules.rest.UUIDv7;
 import eu.cloudnetservice.ext.modules.rest.auth.util.PasswordEncryptionUtil;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import eu.cloudnetservice.ext.rest.api.response.Response;
+import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 // don't make this a record, the constructor of this class should be sealed
+@SuppressWarnings("ClassCanBeRecord")
 public final class DefaultRestUser implements RestUser {
 
   public static final String PASSWORD_KEY = "password";
   public static final String PASSWORD_SALT_KEY = "salt";
 
-  private final @NonNull String id;
-  private final @NonNull Set<String> scopes;
-  private final @NonNull Map<String, String> properties;
+  private final UUID id;
+  private final String username;
+  private final Set<String> scopes;
+
+  private final String createdBy;
+  private final OffsetDateTime createdAt;
+
+  private final String modifiedBy;
+  private final OffsetDateTime modifiedAt;
+
+  private final Map<String, String> properties;
 
   private DefaultRestUser(
-    @NonNull String id,
+    @NonNull UUID id,
+    @NonNull String username,
     @NonNull Set<String> scopes,
+    @NonNull String createdBy,
+    @NonNull OffsetDateTime createdAt,
+    @NonNull String modifiedBy,
+    @NonNull OffsetDateTime modifiedAt,
     @NonNull Map<String, String> properties
   ) {
     this.id = id;
+    this.username = username;
     this.scopes = scopes;
+    this.createdBy = createdBy;
+    this.createdAt = createdAt;
+    this.modifiedBy = modifiedBy;
+    this.modifiedAt = modifiedAt;
     this.properties = properties;
   }
 
@@ -57,6 +81,11 @@ public final class DefaultRestUser implements RestUser {
     return builder()
       .id(user.id())
       .scopes(user.scopes())
+      .username(user.username())
+      .createdAt(user.createdAt())
+      .createdBy(user.createdBy())
+      .modifiedAt(user.modifiedAt())
+      .modifiedBy(user.modifiedBy())
       .properties(user.properties());
   }
 
@@ -80,8 +109,33 @@ public final class DefaultRestUser implements RestUser {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull String id() {
+  public @NonNull UUID id() {
     return this.id;
+  }
+
+  @Override
+  public @NonNull String username() {
+    return this.username;
+  }
+
+  @Override
+  public @NonNull OffsetDateTime createdAt() {
+    return this.createdAt;
+  }
+
+  @Override
+  public @NonNull String createdBy() {
+    return this.createdBy;
+  }
+
+  @Override
+  public @NonNull OffsetDateTime modifiedAt() {
+    return this.modifiedAt;
+  }
+
+  @Override
+  public @NonNull String modifiedBy() {
+    return this.modifiedBy;
   }
 
   /**
@@ -92,15 +146,42 @@ public final class DefaultRestUser implements RestUser {
     return this.properties;
   }
 
+  @Override
+  public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
+    return JsonResponse.<Map<String, Object>>builder().body(Map.of(
+      "id", this.id,
+      "username", this.username,
+      "scopes", this.scopes,
+      "createdAt", this.createdAt,
+      "createdBy", this.createdBy,
+      "modifiedAt", this.modifiedAt,
+      "modifiedBy", this.modifiedBy));
+  }
+
   public static final class Builder implements RestUser.Builder {
 
-    private String id;
+    private UUID id = UUIDv7.generate(System.currentTimeMillis());
+    private String username;
     private Set<String> scopes = new HashSet<>();
+
+    private String createdBy;
+    private OffsetDateTime createdAt;
+
+    private String modifiedBy;
+    private OffsetDateTime modifiedAt;
+
     private Map<String, String> properties = new HashMap<>();
 
-    @Override
-    public @NonNull Builder id(@NonNull String id) {
+    @NonNull
+    Builder id(@NonNull UUID id) {
       this.id = id;
+      return this;
+    }
+
+    @Override
+    public @NonNull Builder username(@NonNull String username) {
+      this.validateUsername(username);
+      this.username = username;
       return this;
     }
 
@@ -161,12 +242,56 @@ public final class DefaultRestUser implements RestUser {
     }
 
     @Override
+    public @NonNull Builder createdAt(@NonNull OffsetDateTime createdAt) {
+      this.createdAt = createdAt;
+      return this;
+    }
+
+    @Override
+    public @NonNull Builder createdBy(@NonNull String createdBy) {
+      this.createdBy = createdBy;
+      return this;
+    }
+
+    @Override
+    public @NonNull Builder modifiedAt(@NonNull OffsetDateTime modifiedAt) {
+      this.modifiedAt = modifiedAt;
+      return this;
+    }
+
+    @Override
+    public @NonNull Builder modifiedBy(@NonNull String modifiedBy) {
+      this.modifiedBy = modifiedBy;
+      return this;
+    }
+
+    @Override
     public @NonNull RestUser build() {
       Preconditions.checkNotNull(this.id, "Missing rest user id");
+      Preconditions.checkNotNull(this.username, "Missing rest user name");
+      Preconditions.checkNotNull(this.createdAt, "Missing rest user creation time");
+      Preconditions.checkNotNull(this.createdBy, "Missing rest user created by");
+
+      if (this.modifiedBy == null) {
+        this.modifiedBy = this.createdBy;
+      }
+
+      if (this.modifiedAt == null) {
+        this.modifiedAt = this.createdAt;
+      }
+
       Preconditions.checkArgument(this.properties.containsKey(PASSWORD_KEY), "Missing rest user password");
       Preconditions.checkArgument(this.properties.containsKey(PASSWORD_SALT_KEY), "Missing rest user salt key");
 
-      return new DefaultRestUser(this.id, Set.copyOf(this.scopes), Map.copyOf(this.properties));
+      return new DefaultRestUser(
+        this.id,
+        this.username,
+        Set.copyOf(this.scopes),
+        this.createdBy,
+        this.createdAt,
+        this.modifiedBy,
+        this.modifiedAt,
+        Map.copyOf(this.properties));
     }
 
     private void validateScope(@Nullable String scope) {
@@ -180,6 +305,16 @@ public final class DefaultRestUser implements RestUser {
         throw new IllegalArgumentException(String.format(
           "Scope %s does not fulfil the scope naming requirements (Regex: %s)",
           scope,
+          RestUser.SCOPE_NAMING_PATTERN.pattern()));
+      }
+    }
+
+    private void validateUsername(@NonNull String username) {
+      var usernameMatcher = RestUser.USER_NAMING_PATTERN.matcher(username);
+      if (!usernameMatcher.matches()) {
+        throw new IllegalArgumentException(String.format(
+          "Username %s does not fulfil the user naming requirements (Regex: %s)",
+          username,
           RestUser.SCOPE_NAMING_PATTERN.pattern()));
       }
     }

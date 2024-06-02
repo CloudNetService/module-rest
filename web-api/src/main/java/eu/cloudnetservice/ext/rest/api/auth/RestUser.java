@@ -16,16 +16,19 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-public interface RestUser {
+public interface RestUser extends AuditedUser, IntoResponse<Map<String, Object>> {
 
   /**
    * The global administration scope. A user that gets this scope granted has access to all resources.
@@ -39,14 +42,36 @@ public interface RestUser {
   Pattern SCOPE_NAMING_PATTERN = Pattern.compile("(^[a-z][a-z0-9_]{4,39}):([a-z0-9.\\-_]+)");
 
   /**
-   * Gets the id of this rest user.
-   *
-   * @return the id of this rest user.
+   * The regex that usernames need to conform to.
    */
-  @NonNull String id();
+  Pattern USER_NAMING_PATTERN = Pattern.compile("^[a-zA-Z0-9]{4,16}");
+
+  /**
+   * Gets the unique id of this rest user. The unique id is used for database operations with the user.
+   *
+   * @return the unique id of this rest user.
+   */
+  @NonNull
+  UUID id();
+
+  /**
+   * Gets the unique username of this rest user. The username is used for display and login purposes. The username has
+   * to follow the {@link #USER_NAMING_PATTERN}.
+   *
+   * @return the unique username of this rest user.
+   */
+  @NonNull
+  String username();
+
+  @NonNull
+  OffsetDateTime createdAt();
+
+  @NonNull
+  OffsetDateTime modifiedAt();
 
   @Unmodifiable
-  @NonNull Map<String, String> properties();
+  @NonNull
+  Map<String, String> properties();
 
   /**
    * Checks whether the user has the given scope.
@@ -80,7 +105,8 @@ public interface RestUser {
    * @return an unmodifiable view of the scopes the rest user has.
    */
   @Unmodifiable
-  @NonNull Set<String> scopes();
+  @NonNull
+  Set<String> scopes();
 
   /**
    * The rest user builder used to create and modify rest users to ensure immutability of the rest user itself.
@@ -92,22 +118,19 @@ public interface RestUser {
    * @see RestUserManagement
    * @since 4.0
    */
-  interface Builder {
+  interface Builder extends AuditedUser.Builder {
 
-    /**
-     * Sets the id of the rest user.
-     *
-     * @param id the id to set.
-     * @return the same instance as used to call the method, for chaining.
-     * @throws NullPointerException if the given id is null.
-     */
-    @NonNull Builder id(@NonNull String id);
+    @NonNull
+    Builder username(@NonNull String username);
 
-    @NonNull Builder property(@NonNull String key, @Nullable String value);
+    @NonNull
+    Builder property(@NonNull String key, @Nullable String value);
 
-    @NonNull Builder properties(@NonNull Map<String, String> properties);
+    @NonNull
+    Builder properties(@NonNull Map<String, String> properties);
 
-    @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier);
+    @NonNull
+    Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier);
 
     /* TODO: fix
      * Adds the given scope to the rest users scopes. The scope has to follow the
@@ -119,11 +142,14 @@ public interface RestUser {
      * @throws NullPointerException     if the given scope is null.
      * @throws IllegalArgumentException if the scope does not follow the mentioned regex pattern.
      */
-    @NonNull Builder scope(@NonNull String scope);
+    @NonNull
+    Builder scope(@NonNull String scope);
 
-    @NonNull Builder scopes(@NonNull Collection<String> scopes);
+    @NonNull
+    Builder scopes(@NonNull Collection<String> scopes);
 
-    @NonNull Builder modifyScopes(@NonNull Consumer<Collection<String>> modifier);
+    @NonNull
+    Builder modifyScopes(@NonNull Consumer<Collection<String>> modifier);
 
     /**
      * Creates the rest user from this builder.
@@ -131,6 +157,7 @@ public interface RestUser {
      * @return the newly built rest user from this builder.
      * @throws NullPointerException if no id was set.
      */
-    @NonNull RestUser build();
+    @NonNull
+    RestUser build();
   }
 }

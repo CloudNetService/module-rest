@@ -16,8 +16,11 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
+import java.util.Collection;
+import java.util.UUID;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 public interface RestUserManagement {
 
@@ -32,7 +35,14 @@ public interface RestUserManagement {
    * @throws NullPointerException if the given id is null.
    */
   @Nullable
-  RestUser restUser(@NonNull String id);
+  RestUser restUser(@NonNull UUID id);
+
+  @Nullable
+  RestUser restUserByUsername(@NonNull String username);
+
+  @NonNull
+  @UnmodifiableView
+  Collection<RestUser> users();
 
   /**
    * Creates and updates the given rest user. If the given user does not exist the user is created and saved otherwise
@@ -50,7 +60,7 @@ public interface RestUserManagement {
    * @return true if the user was deleted, false otherwise.
    * @throws NullPointerException if the given user is null.
    */
-  boolean deleteRestUser(@NonNull String id);
+  boolean deleteRestUser(@NonNull UUID id);
 
   /**
    * Gets a new rest user builder.

@@ -157,6 +157,34 @@ paths:
           $ref: '#/components/responses/Problem'
           description: The provided auth token is no longer valid
   /user:
+    get:
+      tags:
+        - Rest Management
+      summary: Lists all existing rest users
+      description: |
+        Lists all registered rest users.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:user_read`
+          - `cloudnet_rest:user_get_all`
+      operationId: user
+      responses:
+        '200':
+          description: All existing rest users
+          content:
+            application/json:
+              schema:
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RestUser'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
     post:
       tags:
         - Rest Management
@@ -3381,6 +3409,13 @@ paths:
       tags:
         - Modules
       summary: Get the configuration file of a module
+      description: |
+        Gets the configuration file of a module. Some module might not support this feature. In that case the response code is 400.
+        
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_read`
+
+          - `cloudnet_rest:module_config_get`
       responses:
         '200':
           description: OK
@@ -3583,14 +3618,38 @@ components:
       properties:
         id:
           type: string
+          format: uuid
+          examples:
+            - 62b37d32-3305-475a-bf26-9abee4b0b90f
+        username:
+          type: string
           examples:
             - playo
+          pattern: '^[a-zA-Z0-9]{4,16}'
         scopes:
           type: array
           items:
             type: string
           examples:
             - [ "cloudnet_rest:cluster_read", "cloudnet_rest:cluster_write" ]
+        createdAt:
+          type: string
+          format: date
+          examples:
+            - 2024-06-02T20:28:46.3616543+02:00
+        createdBy:
+          type: string
+          examples:
+            - Console
+        modifiedAt:
+          type: string
+          format: date
+          examples:
+            - 2024-06-02T20:28:46.3616543+02:00
+        modifiedBy:
+          type: string
+          examples:
+            - Console
     ConfigurationOptionSSL:
       type: object
       properties:

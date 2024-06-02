@@ -45,7 +45,7 @@ public class CloudNetLoggerInterceptor implements HttpAnnotationProcessor {
         @NonNull HttpHandlerConfig config,
         @NonNull Throwable exception
       ) {
-        LOGGER.severe("Exception occurred while processing annotations for {}", exception, context.request().path());
+        LOGGER.severe("Exception occurred while processing annotations for %s", exception, context.request().path());
         // in this case we want to respond with 500
         context.response().status(HttpResponseCode.INTERNAL_SERVER_ERROR);
       }

@@ -82,7 +82,7 @@ public class BasicAuthProvider implements AuthProvider<Void> {
       // extract the username
       var usernameBytes = Arrays.copyOfRange(decodedBasicValue, 0, basicAuthDelimiterIdx);
       var username = new String(usernameBytes, StandardCharsets.UTF_8);
-      var extractedUser = management.restUser(username);
+      var extractedUser = management.restUserByUsername(username);
       if (extractedUser == null) {
         return AuthenticationResult.Constant.USER_NOT_FOUND;
       }

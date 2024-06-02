@@ -39,9 +39,6 @@ dependencies {
   moduleLibrary(libs.nettyNativeEpoll)
   moduleLibrary(libs.nettyNativeKqueue)
 
-  implementation(projects.webCodecGson)
-  moduleLibrary(libs.gson)
-
   implementation(projects.webParameterValidator)
   moduleLibrary(libs.expressly)
   moduleLibrary(libs.hibernateValidator)
