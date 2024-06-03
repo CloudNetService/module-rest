@@ -274,7 +274,7 @@ public final class V3HttpHandlerModule {
     return this.handleModuleContext(name, module -> {
       if (module.module() instanceof DriverModule driverModule) {
         var config = driverModule.readConfig(DocumentFactory.json());
-        return JsonResponse.builder().body(Map.of("config", config));
+        return JsonResponse.builder().body(config);
       } else {
         return ProblemDetail.builder()
           .status(HttpResponseCode.BAD_REQUEST)

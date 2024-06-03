@@ -223,7 +223,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /user/{uniqueId}/:
+  /user/{uniqueId}:
     parameters:
       - name: uniqueId
         in: path
@@ -3422,9 +3422,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  config:
-                    type: object
+                type: object
         '400':
           $ref: '#/components/responses/Problem'
         '401':
