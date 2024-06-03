@@ -3416,6 +3416,8 @@ paths:
           - `cloudnet_rest:module_read`
 
           - `cloudnet_rest:module_config_get`
+        
+          - `cloudnet_rest:module_config_get_sensitive` for reading module configs with sensitive data.
       responses:
         '200':
           description: OK

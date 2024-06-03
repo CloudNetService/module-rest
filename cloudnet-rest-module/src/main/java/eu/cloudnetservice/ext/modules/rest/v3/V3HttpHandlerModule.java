@@ -32,6 +32,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.Optional;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestBody;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestPathParam;
+import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
@@ -92,7 +93,7 @@ public final class V3HttpHandlerModule {
       "*.{jar,war}");
     return JsonResponse.builder().body(Map.of("modules", fileNames));
   }
-  
+
   @RequestHandler(path = "/api/v3/module/available")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_list_available"})
   public @NonNull IntoResponse<?> handleModuleInstalledListRequest() {
@@ -269,10 +270,23 @@ public final class V3HttpHandlerModule {
   }
 
   @RequestHandler(path = "/api/v3/module/{name}/config")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_config_get"})
-  public @NonNull IntoResponse<?> handleModuleConfigRequest(@NonNull @RequestPathParam("name") String name) {
+  public @NonNull IntoResponse<?> handleModuleConfigRequest(
+    @NonNull @Authentication(
+      providers = "jwt",
+      scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_config_get"}) RestUser user,
+    @NonNull @RequestPathParam("name") String name
+  ) {
     return this.handleModuleContext(name, module -> {
       if (module.module() instanceof DriverModule driverModule) {
+        var sensitiveData = driverModule.moduleConfig().storesSensitiveData();
+        if (sensitiveData && !user.hasScope("cloudnet_rest:module_config_get_sensitive")) {
+          return ProblemDetail.builder()
+            .status(HttpResponseCode.FORBIDDEN)
+            .type("missing-permission-module-sensitive-data")
+            .title("Missing Permission Module Sensitive Data")
+            .detail(String.format("The requested module %s stores sensitive data. Missing scope to read config", name));
+        }
+
         var config = driverModule.readConfig(DocumentFactory.json());
         return JsonResponse.builder().body(config);
       } else {
