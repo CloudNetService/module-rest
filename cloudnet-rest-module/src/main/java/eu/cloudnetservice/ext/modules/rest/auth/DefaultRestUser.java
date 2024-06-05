@@ -31,12 +31,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 // don't make this a record, the constructor of this class should be sealed
 @SuppressWarnings("ClassCanBeRecord")
 public final class DefaultRestUser implements RestUser {
+
+  public static final String PASSWORD_REGEX = "^[\\w!€#$%&()*+,\\-./:;<=>?@\\[\\\\\\]^_`{|}~£]{6,128}$";
+  public static final Pattern PASSWORD_PATTERN = Pattern.compile(PASSWORD_REGEX);
 
   public static final String PASSWORD_KEY = "password";
   public static final String PASSWORD_SALT_KEY = "salt";
@@ -186,6 +190,7 @@ public final class DefaultRestUser implements RestUser {
     }
 
     public @NonNull Builder password(@NonNull String password) {
+      this.validatePassword(password);
       var hashedPasswordInfo = PasswordEncryptionUtil.encrypt(password);
       this.properties.put(PASSWORD_KEY, hashedPasswordInfo.second());
       this.properties.put(PASSWORD_SALT_KEY, hashedPasswordInfo.first());
@@ -294,6 +299,15 @@ public final class DefaultRestUser implements RestUser {
         Map.copyOf(this.properties));
     }
 
+    private void validatePassword(@NonNull String password) {
+      var passwordMatcher = PASSWORD_PATTERN.matcher(password);
+      if (!passwordMatcher.matches()) {
+        throw new IllegalArgumentException(String.format(
+          "Password does not fulfill the password requirements (Regex: %s)",
+          PASSWORD_REGEX));
+      }
+    }
+
     private void validateScope(@Nullable String scope) {
       if (scope == null) {
         // might be the case when someone adds null into the scopes set during modification
@@ -313,7 +327,7 @@ public final class DefaultRestUser implements RestUser {
       var usernameMatcher = RestUser.USER_NAMING_PATTERN.matcher(username);
       if (!usernameMatcher.matches()) {
         throw new IllegalArgumentException(String.format(
-          "Username %s does not fulfil the user naming requirements (Regex: %s)",
+          "Username %s does not fulfill the user naming requirements (Regex: %s)",
           username,
           RestUser.SCOPE_NAMING_PATTERN.pattern()));
       }

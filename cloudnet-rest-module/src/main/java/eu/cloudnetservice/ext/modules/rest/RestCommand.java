@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.modules.rest;
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
+import cloud.commandframework.annotations.Regex;
 import cloud.commandframework.annotations.parsers.Parser;
 import cloud.commandframework.context.CommandContext;
 import eu.cloudnetservice.common.language.I18n;
@@ -102,7 +103,7 @@ public final class RestCommand {
   public void createRestUser(
     @NonNull CommandSource source,
     @Argument(value = "username", parserName = "restUserUsername") @NonNull String username,
-    @Argument("password") @NonNull String password
+    @Argument("password") @Regex(DefaultRestUser.PASSWORD_REGEX) @NonNull String password
   ) {
     if (this.restUserManagement.restUserByUsername(username) != null) {
       source.sendMessage(I18n.trans("module-rest-user-already-existing", username));

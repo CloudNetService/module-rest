@@ -166,6 +166,7 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_read`
+        
           - `cloudnet_rest:user_get_all`
       operationId: user
       responses:
@@ -195,6 +196,7 @@ paths:
         
         One of the following scopes is needed to execute the request:
                  - `cloudnet_rest:user_write`
+        
                  - `cloudnet_rest:user_create`
       operationId: user
       requestBody:
@@ -240,6 +242,7 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_read`
+        
           - `cloudnet_rest:user_get`
       responses:
         '200':
@@ -269,6 +272,7 @@ paths:
         
         The following scope is required:
           - `cloudnet_rest:user_write`
+        
           - `cloudnet_rest:user_update`
       responses:
         '200':
@@ -318,6 +322,7 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_write`
+        
           - `cloudnet_rest:user_delete`
       responses:
         '204':
@@ -377,6 +382,7 @@ paths:
 
         One of the following scopes is needed to execute the request:
          - `cloudnet_rest:cluster_write`
+        
          - `cloudnet_rest:cluster_node_update`
       operationId: clusterUpdate
       responses:
@@ -436,6 +442,7 @@ paths:
 
         One of the following scopes is needed to execute the request:
          - `cloudnet_rest:cluster_read`
+        
          - `cloudnet_rest:cluster_node_get`
       operationId: clusterInfo
       responses:
@@ -464,6 +471,7 @@ paths:
 
         One of the following scopes is needed to execute the request:
          - `cloudnet_rest:cluster_write`
+        
          - `cloudnet_rest:cluster_node_delete`
       operationId: clusterDelete
       responses:

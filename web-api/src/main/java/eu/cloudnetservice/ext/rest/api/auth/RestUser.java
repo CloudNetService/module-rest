@@ -36,15 +36,25 @@ public interface RestUser extends AuditedUser, IntoResponse<Map<String, Object>>
   String GLOBAL_ADMIN_SCOPE = "global:admin";
 
   // https://regex101.com/r/3nG0Nu/1
+
   /**
    * The regex that scope names need to conform to.
    */
-  Pattern SCOPE_NAMING_PATTERN = Pattern.compile("(^[a-z][a-z0-9_]{4,39}):([a-z0-9.\\-_]+)");
+  String SCOPE_NAMING_REGEX = "(^[a-z][a-z0-9_]{4,39}):([a-z0-9.\\-_]+)";
+
+  /**
+   * The regex that scope names need to conform to.
+   */
+  Pattern SCOPE_NAMING_PATTERN = Pattern.compile(SCOPE_NAMING_REGEX);
 
   /**
    * The regex that usernames need to conform to.
    */
-  Pattern USER_NAMING_PATTERN = Pattern.compile("^[a-zA-Z0-9]{4,16}");
+  String USER_NAMING_REGEX = "^[a-zA-Z0-9]{4,16}";
+  /**
+   * The regex that usernames need to conform to.
+   */
+  Pattern USER_NAMING_PATTERN = Pattern.compile(USER_NAMING_REGEX);
 
   /**
    * Gets the unique id of this rest user. The unique id is used for database operations with the user.

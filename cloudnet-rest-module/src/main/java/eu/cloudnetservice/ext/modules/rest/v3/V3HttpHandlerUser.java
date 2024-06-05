@@ -16,9 +16,9 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
-import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.modules.rest.UUIDv7;
 import eu.cloudnetservice.ext.modules.rest.auth.DefaultRestUser;
+import eu.cloudnetservice.ext.modules.rest.dto.user.RestUserDto;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
@@ -32,21 +32,17 @@ import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.validation.EnableValidation;
-import io.leangen.geantyref.TypeFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import java.lang.reflect.Type;
+import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import java.util.Map;
-import java.util.Set;
 import lombok.NonNull;
 import org.hibernate.validator.constraints.UUID;
 
 @Singleton
 @EnableValidation
 public final class V3HttpHandlerUser {
-
-  private static final Type SET_STRING_TYPE = TypeFactory.parameterizedClass(Set.class, String.class);
 
   private final RestUserManagement restUserManagement;
 
@@ -70,12 +66,11 @@ public final class V3HttpHandlerUser {
     @NonNull @Authentication(
       providers = "jwt",
       scopes = {"cloudnet_rest:user_write", "cloudnet_rest:user_create"}) RestUser user,
-    @NonNull @RequestTypedBody Document body
+    @NonNull @RequestTypedBody @Valid RestUserDto body
   ) {
-    var username = body.getString("username");
-    var password = body.getString("password");
-    Set<String> scopes = body.readObject("scopes", SET_STRING_TYPE);
-
+    var scopes = body.scopes();
+    var username = body.username();
+    var password = body.password();
     if (username == null || scopes == null || password == null) {
       return ProblemDetail.builder()
         .type("invalid-rest-user-body")
@@ -101,18 +96,6 @@ public final class V3HttpHandlerUser {
         .detail("Creating a rest user with scopes requires the scope: %s".formatted(RestUser.GLOBAL_ADMIN_SCOPE));
     }
 
-    for (var scope : scopes) {
-      if (!this.checkScopeValidity(scope)) {
-        return ProblemDetail.builder()
-          .type("invalid-rest-user-scope")
-          .title("Invalid Rest User Scope")
-          .status(HttpResponseCode.BAD_REQUEST)
-          .detail("The scope %s does not match the scope pattern %s.".formatted(
-            scope,
-            RestUser.SCOPE_NAMING_PATTERN.pattern()));
-      }
-    }
-
     var constructedUser = DefaultRestUser.builder()
       .scopes(scopes)
       .username(username)
@@ -122,7 +105,7 @@ public final class V3HttpHandlerUser {
       .build();
     this.restUserManagement.saveRestUser(constructedUser);
 
-    return JsonResponse.builder().body(constructedUser);
+    return constructedUser;
   }
 
   @RequestHandler(path = "/api/v3/user/{uniqueId}", method = HttpMethod.GET)
@@ -139,7 +122,7 @@ public final class V3HttpHandlerUser {
         .detail("There is no rest user with the provided id: %s".formatted(id));
     }
 
-    return JsonResponse.builder().body(restUser);
+    return restUser;
   }
 
   @RequestHandler(path = "/api/v3/user/{uniqueId}", method = HttpMethod.DELETE)
@@ -157,13 +140,13 @@ public final class V3HttpHandlerUser {
       providers = "jwt",
       scopes = {"cloudnet_rest:user_write", "cloudnet_rest:user_update"}) RestUser requestSender,
     @NonNull @RequestPathParam("uniqueId") @UUID(version = 7) String id,
-    @NonNull @RequestTypedBody Document body
+    @NonNull @RequestTypedBody @Valid RestUserDto body
   ) {
     var uniqueId = UUIDv7.fromString(id);
 
-    var username = body.getString("username");
-    var password = body.getString("password");
-    Set<String> scopes = body.readObject("scopes", SET_STRING_TYPE);
+    var scopes = body.scopes();
+    var username = body.username();
+    var password = body.password();
 
     // at least one value has to be present so that we can do an update
     if (username == null && scopes == null && password == null) {
@@ -221,28 +204,11 @@ public final class V3HttpHandlerUser {
           .detail("Creating a rest user with scopes requires the scope: %s".formatted(RestUser.GLOBAL_ADMIN_SCOPE));
       }
 
-      for (var scope : scopes) {
-        if (!this.checkScopeValidity(scope)) {
-          return ProblemDetail.builder()
-            .type("invalid-rest-user-scope")
-            .title("Invalid Rest User Scope")
-            .status(HttpResponseCode.BAD_REQUEST)
-            .detail("The scope %s does not match the scope pattern %s.".formatted(
-              scope,
-              RestUser.SCOPE_NAMING_PATTERN.pattern()));
-        }
-      }
-
       builder.scopes(scopes);
     }
 
     var user = builder.modifiedAt(OffsetDateTime.now()).modifiedBy(requestSender.username()).build();
     this.restUserManagement.saveRestUser(user);
-    return JsonResponse.builder().body(user);
-  }
-
-  private boolean checkScopeValidity(@NonNull String scope) {
-    var scopeNameMatcher = RestUser.SCOPE_NAMING_PATTERN.matcher(scope);
-    return scopeNameMatcher.matches();
+    return user;
   }
 }
