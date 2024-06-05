@@ -86,23 +86,10 @@ public final class RestCommand {
       scope));
   }
 
-  @Parser(name = "restUserUsername")
-  public @NonNull String restUserUsernameParser(@NonNull CommandContext<?> $, @NonNull Queue<String> input) {
-    var username = input.remove();
-    if (RestUser.USER_NAMING_PATTERN.matcher(username).matches()) {
-      return username;
-    }
-
-    throw new ArgumentNotAvailableException(I18n.trans(
-      "argument-parse-failure-regex",
-      RestUser.USER_NAMING_PATTERN.pattern(),
-      username));
-  }
-
   @CommandMethod("rest user create <username> <password>")
   public void createRestUser(
     @NonNull CommandSource source,
-    @Argument(value = "username", parserName = "restUserUsername") @NonNull String username,
+    @Argument("username") @Regex(DefaultRestUser.USER_NAMING_REGEX) @NonNull String username,
     @Argument("password") @Regex(DefaultRestUser.PASSWORD_REGEX) @NonNull String password
   ) {
     if (this.restUserManagement.restUserByUsername(username) != null) {
