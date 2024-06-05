@@ -1089,6 +1089,32 @@ paths:
         '404':
           description: There is no group with the provided name.
           $ref: '#/components/responses/Problem'
+  /player/registeredCount:
+    get:
+      tags:
+        - Player
+      summary: Get the number of registered players
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_read`
+        
+          - `cloudnet_bridge:player_registered_count`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - properties:
+                      registeredCount:
+                        type: integer
+                        examples:
+                          - 100
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
   /player/onlineCount:
     get:
       tags:
