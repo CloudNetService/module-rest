@@ -85,7 +85,7 @@ public final class V3HttpHandlerTemplate {
           .detail(String.format("The requested template %s does not contain the requested file %s", template, path));
       }
 
-      return this.applyDispositionHeader(MediaType.OCTET_STREAM, this.guessFileName(path));
+      return this.applyDispositionHeader(MediaType.OCTET_STREAM, this.guessFileName(path)).body(stream);
     });
   }
 
@@ -140,7 +140,7 @@ public final class V3HttpHandlerTemplate {
       prefix,
       name,
       (template, storage) -> JsonResponse.builder()
-        .body(storage.listFiles(template, directory, Boolean.parseBoolean(deep))));
+        .body(Map.of("files", storage.listFiles(template, directory, Boolean.parseBoolean(deep)))));
   }
 
   @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/create", method = HttpMethod.POST)
@@ -344,7 +344,8 @@ public final class V3HttpHandlerTemplate {
   @FunctionalInterface
   private interface ThrowableBiFunction<T, U, E extends Throwable> {
 
-    @NonNull IntoResponse<?> apply(@NonNull T t, @NonNull U u) throws E;
+    @NonNull
+    IntoResponse<?> apply(@NonNull T t, @NonNull U u) throws E;
   }
 
   private @NonNull InputStreamResponse.Builder applyDispositionHeader(
