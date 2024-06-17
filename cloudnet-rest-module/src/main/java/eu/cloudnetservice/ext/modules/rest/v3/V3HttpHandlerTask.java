@@ -77,7 +77,7 @@ public final class V3HttpHandlerTask {
     return HttpResponseCode.NO_CONTENT;
   }
 
-  @RequestHandler(path = "/api/v3/task/{name}", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/task/{name}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_write", "cloudnet_rest:task_delete"})
   public @NonNull IntoResponse<?> handleTaskDeleteRequest(@NonNull @RequestPathParam("name") String name) {
     var task = this.taskProvider.serviceTask(name);
