@@ -21,6 +21,7 @@ import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
+import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
@@ -30,6 +31,7 @@ import eu.cloudnetservice.ext.rest.api.codec.CodecLoader;
 import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
+import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -71,7 +73,20 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
           var request = context.request();
           var requestCharset = extractRequestCharsetOrUtf8(request);
 
-          return deserializer.deserialize(requestCharset, type, request.bodyStream());
+          try {
+            return deserializer.deserialize(requestCharset, type, request.bodyStream());
+          } catch (Exception exception) {
+            throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(ProblemDetail.builder()
+                .status(HttpResponseCode.BAD_REQUEST)
+                .type("exception-during-decoding")
+                .type("Exception during decoding")
+                .detail("Unable to decode provided request body.")
+                .build())
+              .parameter(param)
+              .handlerMethod(method)
+              .debugIssueCause(exception)
+              .build();
+          }
         };
       });
     config.addHandlerInterceptor(new HttpHandlerInterceptor() {
