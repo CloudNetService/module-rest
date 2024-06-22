@@ -79,12 +79,17 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
             throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(ProblemDetail.builder()
                 .status(HttpResponseCode.BAD_REQUEST)
                 .type("exception-during-decoding")
-                .type("Exception during decoding")
+                .title("Exception during decoding")
                 .detail("Unable to decode provided request body.")
                 .build())
               .parameter(param)
               .handlerMethod(method)
               .debugIssueCause(exception)
+              .annotationType(RequestTypedBody.class)
+              .debugDescription(
+                String.format(
+                  "Calling the deserializer of type %s with the request body raised an exception.",
+                  deserializer.getClass()))
               .build();
           }
         };
