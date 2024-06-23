@@ -30,6 +30,10 @@ public final class UUIDv7 {
   private static final VarHandle BYTE_ARRAY_LONG_VIEW_HANDLE =
     MethodHandles.byteArrayViewVarHandle(Long.TYPE.arrayType(), ByteOrder.BIG_ENDIAN);
 
+  private UUIDv7() {
+    throw new UnsupportedOperationException();
+  }
+
   public static @NonNull UUID generate(long timestamp) {
     // get the random data for the second uuid component
     var bytes = new byte[10];
@@ -47,5 +51,4 @@ public final class UUIDv7 {
   public static @NonNull UUID fromString(@NonNull String uniqueId) {
     return UUID.fromString(uniqueId);
   }
-
 }

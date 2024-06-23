@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -166,6 +167,7 @@ public final class DefaultRestUser implements RestUser {
 
     private UUID id = UUIDv7.generate(System.currentTimeMillis());
     private String username;
+
     private Set<String> scopes = new HashSet<>();
 
     private String createdBy;
@@ -277,14 +279,6 @@ public final class DefaultRestUser implements RestUser {
       Preconditions.checkNotNull(this.createdAt, "Missing rest user creation time");
       Preconditions.checkNotNull(this.createdBy, "Missing rest user created by");
 
-      if (this.modifiedBy == null) {
-        this.modifiedBy = this.createdBy;
-      }
-
-      if (this.modifiedAt == null) {
-        this.modifiedAt = this.createdAt;
-      }
-
       Preconditions.checkArgument(this.properties.containsKey(PASSWORD_KEY), "Missing rest user password");
       Preconditions.checkArgument(this.properties.containsKey(PASSWORD_SALT_KEY), "Missing rest user salt key");
 
@@ -294,8 +288,8 @@ public final class DefaultRestUser implements RestUser {
         Set.copyOf(this.scopes),
         this.createdBy,
         this.createdAt,
-        this.modifiedBy,
-        this.modifiedAt,
+        Objects.requireNonNullElse(this.modifiedBy, this.createdBy),
+        Objects.requireNonNullElse(this.modifiedAt, this.createdAt),
         Map.copyOf(this.properties));
     }
 
