@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +104,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
       Authentication.class,
       (param, annotation) -> {
         var provider = resolveProviders(annotation);
-        return context -> this.tryAuthenticateRequest(context, provider, annotation.scopes());
+        return context -> this.tryAuthenticateRequest(context, provider, Set.of(annotation.scopes()));
       });
 
     // the auth annotation should only be at one parameter, there is no point in supplying it multiple times
@@ -128,7 +129,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
             @NonNull HttpHandler handler,
             @NonNull HttpHandlerConfig config
           ) {
-            AuthenticationProcessor.this.tryAuthenticateRequest(context, provider, authentication.scopes());
+            AuthenticationProcessor.this.tryAuthenticateRequest(context, provider, Set.of(authentication.scopes()));
             return true;
           }
         });
@@ -152,35 +153,23 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
   private @NonNull RestUser tryAuthenticateRequest(
     @NonNull HttpContext context,
     @NonNull List<? extends AuthProvider<?>> provider,
-    @NonNull String[] scopes
+    @NonNull Set<String> scopes
   ) {
     // try all requested auth providers until we find one that can handle the authentication process
     AuthenticationResult authenticationResult = AuthenticationResult.Constant.PROCEED;
     for (var authProvider : provider) {
-      authenticationResult = authProvider.tryAuthenticate(context, this.management.get());
+      authenticationResult = authProvider.tryAuthenticate(context, this.management.get(), scopes);
       if (authenticationResult != AuthenticationResult.Constant.PROCEED) {
         break;
       }
     }
 
-    // one handler was able to process the request, check if that was successful
-    if (authenticationResult instanceof AuthenticationResult.Success successfulResult) {
-      var user = successfulResult.restUser();
-      if (scopes.length != 0 && !user.hasOneScopeOf(scopes)) {
-        // unable to authenticate the user due to a scope restriction
+    return switch (authenticationResult) {
+      case AuthenticationResult.Success success -> success.restUser();
+      case AuthenticationResult.Constant.PROCEED -> throw new ProblemHttpHandleException(AUTH_METHOD_UNKNOWN);
+      case AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES ->
         throw new ProblemHttpHandleException(AUTH_REQUIRED_SCOPE_MISSING);
-      }
-
-      return user;
-    }
-
-    if (authenticationResult == AuthenticationResult.Constant.PROCEED) {
-      // no auth provider was able to handle the auth - in this case the auth information
-      // that were supplied from the client might just not be supported (or there were no auth information)
-      throw new ProblemHttpHandleException(AUTH_METHOD_UNKNOWN);
-    } else {
-      // either the user does not exist or the credentials are invalid
-      throw new ProblemHttpHandleException(AUTH_INVALID);
-    }
+      default -> throw new ProblemHttpHandleException(AUTH_INVALID);
+    };
   }
 }

@@ -18,8 +18,6 @@ package eu.cloudnetservice.ext.modules.rest.v3;
 
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.driver.service.ServiceTemplate;
 import eu.cloudnetservice.driver.template.TemplateStorage;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
@@ -40,11 +38,13 @@ import java.io.InputStream;
 import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public final class V3HttpHandlerTemplate {
 
-  private static final Logger LOGGER = LogManager.logger(V3HttpHandlerTemplate.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(V3HttpHandlerTemplate.class);
 
   @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/download")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_download"})
@@ -332,7 +332,7 @@ public final class V3HttpHandlerTemplate {
     try {
       return mapper.apply(template, templateStorage);
     } catch (IOException exception) {
-      LOGGER.fine("Exception handling template request", exception);
+      LOGGER.debug("Exception handling template request", exception);
       return ProblemDetail.builder()
         .type("template-handling-failed")
         .title("Template Handling Failed")

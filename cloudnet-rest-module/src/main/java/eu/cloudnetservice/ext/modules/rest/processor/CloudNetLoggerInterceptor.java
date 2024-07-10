@@ -16,8 +16,6 @@
 
 package eu.cloudnetservice.ext.modules.rest.processor;
 
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -26,10 +24,12 @@ import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
 import java.lang.reflect.Method;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CloudNetLoggerInterceptor implements HttpAnnotationProcessor {
 
-  private static final Logger LOGGER = LogManager.logger(CloudNetLoggerInterceptor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CloudNetLoggerInterceptor.class);
 
   @Override
   public void buildPreprocessor(
@@ -45,7 +45,7 @@ public class CloudNetLoggerInterceptor implements HttpAnnotationProcessor {
         @NonNull HttpHandlerConfig config,
         @NonNull Throwable exception
       ) {
-        LOGGER.severe("Exception occurred while processing annotations for %s", exception, context.request().path());
+        LOGGER.error("Exception occurred while processing annotations for {}", context.request().path(), exception);
         // in this case we want to respond with 500
         context.response().status(HttpResponseCode.INTERNAL_SERVER_ERROR);
       }

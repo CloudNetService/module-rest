@@ -18,8 +18,6 @@ package eu.cloudnetservice.ext.modules.rest;
 
 import dev.derklaro.aerogel.binding.BindingBuilder;
 import eu.cloudnetservice.common.language.I18n;
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
@@ -28,6 +26,7 @@ import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.modules.rest.listener.CloudNetBridgeInitializer;
+import eu.cloudnetservice.ext.modules.rest.listener.RestUserUpdateListener;
 import eu.cloudnetservice.ext.modules.rest.processor.CloudNetLoggerInterceptor;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerAuthorization;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerCluster;
@@ -50,11 +49,13 @@ import eu.cloudnetservice.ext.rest.validation.ValidationHandlerMethodContextDeco
 import eu.cloudnetservice.node.command.CommandProvider;
 import jakarta.inject.Singleton;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public final class CloudNetRestModule extends DriverModule {
 
-  private static final Logger LOGGER = LogManager.logger(CloudNetRestModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CloudNetRestModule.class);
 
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.LOADED)
   public void loadLanguageFile() {
@@ -124,7 +125,8 @@ public final class CloudNetRestModule extends DriverModule {
   }
 
   @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
-  public void registerBridgeInitializer(@NonNull EventManager eventManager) {
+  public void registerListener(@NonNull EventManager eventManager) {
+    eventManager.registerListener(RestUserUpdateListener.class);
     eventManager.registerListener(CloudNetBridgeInitializer.class);
   }
 
@@ -133,7 +135,7 @@ public final class CloudNetRestModule extends DriverModule {
     try {
       httpServer.close();
     } catch (Exception exception) {
-      LOGGER.severe("Unable to close http server while disabling cloudnet rest module.", exception);
+      LOGGER.error("Unable to close http server while disabling cloudnet rest module.", exception);
     }
   }
 }

@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
+import java.util.Set;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +52,10 @@ public sealed interface AuthenticationResult permits
      * couldn't be completed.
      */
     INVALID_CREDENTIALS,
+    /**
+     * TODO:
+     */
+    REQUESTED_INVALID_SCOPES;
   }
 
   /**
@@ -76,6 +81,7 @@ public sealed interface AuthenticationResult permits
    */
   record InvalidTokenType(
     @NonNull RestUser restUser,
+    @NonNull Set<String> scopes,
     @Nullable String tokenId,
     @Nullable String tokenType
   ) implements AuthenticationResult {

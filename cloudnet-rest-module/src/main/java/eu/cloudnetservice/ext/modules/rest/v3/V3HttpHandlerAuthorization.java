@@ -16,13 +16,16 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
+import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedJwtBody;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
+import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
+import eu.cloudnetservice.ext.rest.api.auth.AuthTokenGenerationResult;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
@@ -36,13 +39,22 @@ import eu.cloudnetservice.ext.rest.jwt.JwtTokenPropertyParser;
 import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import jakarta.inject.Singleton;
+import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
 public final class V3HttpHandlerAuthorization {
+
+  private static final ProblemDetail AUTH_REQUESTED_INVALID_SCOPES = ProblemDetail.builder()
+    .title("Auth Refresh Invalid Scope")
+    .type(URI.create("auth-refresh-invalid-scope"))
+    .status(HttpResponseCode.FORBIDDEN)
+    .detail("The scoped refresh token contains a scope that is not valid anymore.")
+    .build();
 
   private final AuthProvider<?> jwtAuthProvider;
   private final RestUserManagement userManagement;
@@ -54,14 +66,20 @@ public final class V3HttpHandlerAuthorization {
 
   @RequestHandler(path = "/api/v3/auth", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(
-    @Authentication(providers = "basic") @NonNull RestUser user
+    @Authentication(providers = "basic") @NonNull RestUser user,
+    @NonNull @RequestTypedBody ScopedJwtBody body
   ) {
-    return this.jwtAuthProvider.generateAuthToken(this.userManagement, user);
+    var scopes = body.scopes() != null ? body.scopes() : Set.<String>of();
+    var result = this.jwtAuthProvider.generateAuthToken(this.userManagement, user, scopes);
+    return switch (result) {
+      case AuthTokenGenerationResult.Success<?> ignored -> ignored.authToken();
+      case AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES -> AUTH_REQUESTED_INVALID_SCOPES;
+    };
   }
 
   @RequestHandler(path = "/api/v3/auth/refresh", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleRefreshRequest(@NonNull HttpContext context) {
-    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement, Set.of());
     return switch (authenticationResult) {
       case AuthenticationResult.Success ignored -> ProblemDetail.builder()
         .type("access-token-used")
@@ -89,8 +107,15 @@ public final class V3HttpHandlerAuthorization {
           }
         }).build();
 
+        var authToken = this.jwtAuthProvider.generateAuthToken(this.userManagement, user, refreshResult.scopes());
+
+        // CHECKSTYLE.OFF: checkstyle has a problem with nested switches
         // generate a new auth token for the user - this will also save the user with the new valid tokens
-        yield this.jwtAuthProvider.generateAuthToken(this.userManagement, user);
+        yield switch (authToken) {
+          case AuthTokenGenerationResult.Success<?> success -> success.authToken();
+          case AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES -> AUTH_REQUESTED_INVALID_SCOPES;
+        };
+        // CHECKSTYLE.ON
       }
       default -> ProblemDetail.builder()
         .type("invalid-refresh-token")
@@ -102,7 +127,7 @@ public final class V3HttpHandlerAuthorization {
 
   @RequestHandler(path = "/api/v3/auth/verify", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleVerifyRequest(@NonNull HttpContext context) {
-    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement, Set.of());
     var convertedAuthResult = this.convertAuthResult(authenticationResult);
     if (convertedAuthResult == null) {
       return ProblemDetail.builder()
@@ -133,7 +158,7 @@ public final class V3HttpHandlerAuthorization {
 
   @RequestHandler(path = "/api/v3/auth/revoke", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> revokeAuthToken(@NonNull HttpContext context) {
-    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement, Set.of());
     var convertedAuthResult = this.convertAuthResult(authenticationResult);
     if (convertedAuthResult == null) {
       return ProblemDetail.builder()

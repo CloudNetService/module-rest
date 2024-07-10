@@ -18,9 +18,12 @@ lombok = "1.18.34"
 # runtime dependencies
 gson = "2.11.0"
 jjwt = "0.12.6"
-slf4j = "2.0.15"
 guava = "33.2.1-jre"
 annotations = "24.1.0"
+
+# logging
+slf4j = "2.0.15"
+logback = "1.5.6"
 
 # validation
 expressly = "5.0.0"
@@ -30,7 +33,6 @@ hibernateValidator = "8.0.1.Final"
 # netty stuff
 netty = "5.0.0.Alpha5"
 nettyContribHaProxy = "5.0.0.Alpha2"
-
 
 [libraries]
 
@@ -71,8 +73,12 @@ hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-vali
 jakartaValidationApi = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakartaValidationApi" }
 
 # general
-slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+
+# logging
+slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+logbackCore = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
+logbackClassic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 
 # dummy versions, just here for renovate to detect that there is something to update
 checkstyleTools = { group = "com.puppycrawl.tools", name = "checkstyle", version.ref = "checkstyleTools" }

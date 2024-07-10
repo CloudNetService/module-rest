@@ -17,8 +17,6 @@
 package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.common.io.FileUtil;
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.module.ModuleProvider;
@@ -53,11 +51,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import kong.unirest.core.Unirest;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public final class V3HttpHandlerModule {
 
-  private static final Logger LOGGER = LogManager.logger(V3HttpHandlerModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(V3HttpHandlerModule.class);
 
   private final ModulesHolder modulesHolder;
   private final ModuleProvider moduleProvider;
@@ -182,7 +182,7 @@ public final class V3HttpHandlerModule {
         }
       }
     } catch (IOException exception) {
-      LOGGER.fine("Exception handling module load request", exception);
+      LOGGER.debug("Exception handling module load request", exception);
       FileUtil.delete(moduleTarget);
       return ProblemDetail.builder()
         .type("module-load-failed-io")

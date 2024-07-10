@@ -19,8 +19,10 @@ package eu.cloudnetservice.ext.modules.rest.auth;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.Scheduler;
+import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.node.database.LocalDatabase;
@@ -31,13 +33,19 @@ import java.util.UUID;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class DefaultRestUserManagement implements RestUserManagement {
 
   private static final String REST_USER_DB_NAME = "cloudnet_rest_users";
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRestUserManagement.class);
 
   private final LocalDatabase localDatabase;
   private final LoadingCache<UUID, RestUser> restUserCache;
+
+  public static final String REST_USER_INVALIDATE = "rest_user_invalidate";
+  public static final String REST_USER_MANAGEMENT_CHANNEL = "rest_user_management_channel";
 
   public DefaultRestUserManagement() {
     this(InjectionLayer.ext().instance(NodeDatabaseProvider.class));
@@ -104,12 +112,26 @@ public final class DefaultRestUserManagement implements RestUserManagement {
   }
 
   /**
+   * Invalides the given unique id in the cache.
+   *
+   * @param uniqueId the unique id to invalidate.
+   * @throws NullPointerException if the given uniqueId is null.
+   */
+  public void invalidate(@NonNull UUID uniqueId) {
+    this.restUserCache.invalidate(uniqueId);
+    LOGGER.debug("Invalidated rest user with id {} in caches.", uniqueId);
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public void saveRestUser(@NonNull RestUser user) {
     this.restUserCache.put(user.id(), user);
     this.localDatabase.insert(user.id().toString(), DocumentFactory.json().newDocument(user));
+
+    // inform the other nodes that the user was updated
+    this.sendRestUserInvalidationMessage(user.id());
   }
 
   /**
@@ -118,7 +140,11 @@ public final class DefaultRestUserManagement implements RestUserManagement {
   @Override
   public boolean deleteRestUser(@NonNull UUID id) {
     this.restUserCache.invalidate(id);
-    return this.localDatabase.delete(id.toString());
+    var result = this.localDatabase.delete(id.toString());
+
+    // invalidate the user on other nodes to make sure the caches are in sync
+    this.sendRestUserInvalidationMessage(id);
+    return result;
   }
 
   @Override
@@ -137,5 +163,15 @@ public final class DefaultRestUserManagement implements RestUserManagement {
       .modifiedAt(restUser.modifiedAt())
       .modifiedBy(restUser.modifiedBy())
       .properties(restUser.properties());
+  }
+
+  private void sendRestUserInvalidationMessage(@NonNull UUID uniqueId) {
+    ChannelMessage.builder()
+      .targetNodes()
+      .message(REST_USER_INVALIDATE)
+      .channel(REST_USER_MANAGEMENT_CHANNEL)
+      .buffer(DataBuf.empty().writeUniqueId(uniqueId))
+      .build()
+      .send();
   }
 }

@@ -20,6 +20,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonSyntaxException;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
+import eu.cloudnetservice.ext.rest.api.auth.AuthTokenGenerationResult;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
@@ -34,8 +35,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -121,7 +125,8 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   @Override
   public @NonNull AuthenticationResult tryAuthenticate(
     @NonNull HttpContext context,
-    @NonNull RestUserManagement management
+    @NonNull RestUserManagement management,
+    @NonNull Set<String> requiredScopes
   ) {
     // check if the authorization header is present
     var authHeader = context.request().headers().firstValue(HttpHeaders.AUTHORIZATION);
@@ -153,10 +158,20 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
         // the token id is registered for the user - last check we need to do is the token type checking
         var tokenId = token.getPayload().getId();
         var tokenType = token.getPayload().get("type", String.class);
+
+        // ensure that the user has one of the required scopes and of the jwt is scoped,
+        // that the jwt contains the correct scopes
+        var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.<String>of());
+        for (var requiredScope : requiredScopes) {
+          if (!existingScopes.contains(requiredScope) || !user.hasScope(requiredScope)) {
+            return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
+          }
+        }
+
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
           return new AuthenticationResult.Success(user, tokenId);
         } else {
-          return new AuthenticationResult.InvalidTokenType(user, tokenId, tokenType);
+          return new AuthenticationResult.InvalidTokenType(user, new HashSet<>(existingScopes), tokenId, tokenType);
         }
       } else {
         return AuthenticationResult.Constant.INVALID_CREDENTIALS;
@@ -167,18 +182,31 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   }
 
   @Override
-  public @NonNull JwtAuthToken generateAuthToken(@NonNull RestUserManagement management, @NonNull RestUser restUser) {
+  public @NonNull AuthTokenGenerationResult generateAuthToken(
+    @NonNull RestUserManagement management,
+    @NonNull RestUser restUser,
+    @NonNull Set<String> scopes
+  ) {
+    for (var scope : scopes) {
+      if (!restUser.hasScope(scope)) {
+        // the user requested a jwt token with scopes the user is not allowed to use
+        return AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES;
+      }
+    }
+
     // generate a new access and refresh token for the user
     var tokenPairId = this.newRandomTokenId();
     var accessToken = this.generateNewJwtToken(
       tokenPairId,
       JwtTokenHolder.ACCESS_TOKEN_TYPE,
       restUser,
+      scopes,
       this.accessDuration);
     var refreshToken = this.generateNewJwtToken(
       tokenPairId,
       JwtTokenHolder.REFRESH_TOKEN_TYPE,
       restUser,
+      scopes,
       this.refreshDuration);
 
     // get the tokens that are currently stored in the rest user
@@ -201,7 +229,11 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     management.saveRestUser(updatedUser);
 
     // return the generated token pair
-    return new JwtAuthToken(updatedUser.scopes(), currentTime, accessToken, refreshToken);
+    return new AuthTokenGenerationResult.Success<>(new JwtAuthToken(
+      scopes.isEmpty() ? updatedUser.scopes() : scopes,
+      currentTime,
+      accessToken,
+      refreshToken));
   }
 
   private @NonNull String newRandomTokenId() {
@@ -212,19 +244,24 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     @NonNull String tokenId,
     @NonNull String tokenType,
     @NonNull RestUser subject,
+    @NonNull Set<String> scopes,
     @NonNull Duration validDuration
   ) {
     var expiration = Instant.now().plus(validDuration);
-    var jwtToken = Jwts.builder()
+    var jwtTokenBuilder = Jwts.builder()
       .issuer(this.issuer)
       .subject(subject.id().toString())
       .issuedAt(new Date())
       .expiration(Date.from(expiration))
       .id(tokenId)
       .claim("type", tokenType)
-      .signWith(this.jwtSigningKey)
-      .compact();
-    return new JwtTokenHolder(jwtToken, tokenId, expiration, tokenType);
+      .signWith(this.jwtSigningKey);
+    // only add the scopes if the user explicitly requested to do so
+    if (!scopes.isEmpty()) {
+      jwtTokenBuilder = jwtTokenBuilder.claim("scopes", scopes);
+    }
+
+    return new JwtTokenHolder(jwtTokenBuilder.compact(), tokenId, expiration, tokenType);
   }
 
   protected boolean checkValidTokenId(@NonNull Collection<JwtTokenHolder> tokens, @NonNull String tokenId) {

@@ -292,7 +292,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     } catch (Throwable throwable) {
       // if the thrown throwable implements IntoResponse we can just return that response
       if (throwable instanceof IntoResponse<?> ir) {
-        LOGGER.warn(
+        LOGGER.debug(
           "Exception while posting request to handler. Details: {}",
           throwable.getMessage(),
           throwable.getCause() == null ? throwable : throwable.getCause());

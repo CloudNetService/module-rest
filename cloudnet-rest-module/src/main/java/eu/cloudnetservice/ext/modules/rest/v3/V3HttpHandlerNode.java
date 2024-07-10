@@ -16,9 +16,9 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
-import eu.cloudnetservice.common.log.AbstractHandler;
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.defaults.DefaultLogFormatter;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.OutputStreamAppender;
 import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.CloudNetVersion;
 import eu.cloudnetservice.driver.module.ModuleProvider;
@@ -50,20 +50,21 @@ import eu.cloudnetservice.node.config.Configuration;
 import eu.cloudnetservice.node.config.JsonConfiguration;
 import eu.cloudnetservice.node.service.CloudServiceManager;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Formatter;
-import java.util.logging.LogRecord;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 @Singleton
 public final class V3HttpHandlerNode {
 
+  private final Logger logger;
   private final Configuration configuration;
   private final NetworkClient networkClient;
   private final ModuleProvider moduleProvider;
@@ -76,6 +77,7 @@ public final class V3HttpHandlerNode {
 
   @Inject
   public V3HttpHandlerNode(
+    @NonNull @Named("root") Logger logger,
     @NonNull Configuration configuration,
     @NonNull NetworkClient networkClient,
     @NonNull ModuleProvider moduleProvider,
@@ -86,6 +88,7 @@ public final class V3HttpHandlerNode {
     @NonNull ServiceTaskProvider serviceTaskProvider,
     @NonNull GroupConfigurationProvider groupConfigurationProvider
   ) {
+    this.logger = logger;
     this.configuration = configuration;
     this.networkClient = networkClient;
     this.moduleProvider = moduleProvider;
@@ -176,9 +179,17 @@ public final class V3HttpHandlerNode {
       scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"}) @NonNull RestUser restUser
   ) {
     context.upgrade().thenAccept(channel -> {
-      var handler = new WebSocketLogHandler(restUser, channel, DefaultLogFormatter.END_LINE_SEPARATOR);
-      channel.addListener(handler);
-      LogManager.rootLogger().addHandler(handler);
+      if (this.logger instanceof ch.qos.logback.classic.Logger logbackLogger) {
+        var webSocketAppender = new WebSocketLogAppender(logbackLogger, restUser, channel);
+
+        var appender = logbackLogger.getAppender("Rolling");
+        if (appender instanceof OutputStreamAppender<ILoggingEvent> consoleAppender) {
+          webSocketAppender.setEncoder(consoleAppender.getEncoder());
+        }
+
+        logbackLogger.addAppender(webSocketAppender);
+        channel.addListener(webSocketAppender);
+      }
     });
 
     return HttpResponseCode.SWITCHING_PROTOCOLS;
@@ -190,17 +201,18 @@ public final class V3HttpHandlerNode {
     this.groupConfigurationProvider.reload();
   }
 
-  protected class WebSocketLogHandler extends AbstractHandler implements WebSocketListener {
+  protected class WebSocketLogAppender extends ConsoleAppender<ILoggingEvent> implements WebSocketListener {
 
+    protected final ch.qos.logback.classic.Logger logger;
     protected final RestUser user;
     protected final WebSocketChannel channel;
 
-    public WebSocketLogHandler(
+    public WebSocketLogAppender(
+      @NonNull ch.qos.logback.classic.Logger logger,
       @NonNull RestUser user,
-      @NonNull WebSocketChannel channel,
-      @NonNull Formatter formatter
+      @NonNull WebSocketChannel channel
     ) {
-      super.setFormatter(formatter);
+      this.logger = logger;
       this.user = user;
       this.channel = channel;
     }
@@ -226,13 +238,12 @@ public final class V3HttpHandlerNode {
       @NonNull AtomicInteger statusCode,
       @NonNull AtomicReference<String> statusText
     ) {
-      LogManager.rootLogger().removeHandler(this);
+      this.logger.detachAppender(this);
     }
 
     @Override
-    public void publish(@NonNull LogRecord record) {
-      this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, super.getFormatter().format(record));
+    protected void append(ILoggingEvent event) {
+      this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, this.encoder.encode(event));
     }
   }
-
 }

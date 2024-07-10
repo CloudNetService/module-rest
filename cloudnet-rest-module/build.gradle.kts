@@ -44,6 +44,9 @@ dependencies {
   moduleLibrary(libs.hibernateValidator)
   moduleLibrary(libs.jakartaValidationApi)
 
+  compileOnly(libs.logbackCore)
+  compileOnly(libs.logbackClassic)
+
   compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC10")
   compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC10")
 }

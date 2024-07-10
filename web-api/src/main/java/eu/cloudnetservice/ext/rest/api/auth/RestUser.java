@@ -109,6 +109,16 @@ public interface RestUser extends AuditedUser, IntoResponse<Map<String, Object>>
     return false;
   }
 
+  default boolean hasOneScopeOf(@NonNull Set<String> scopes) {
+    for (var scope : scopes) {
+      if (this.hasScope(scope)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /**
    * Gets an unmodifiable view of the scopes the rest user has.
    *
