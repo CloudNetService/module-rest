@@ -54,6 +54,7 @@ import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -83,7 +84,7 @@ public final class V3HttpHandlerService {
   @RequestHandler(path = "/api/v3/service")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_list"})
   public @NonNull IntoResponse<?> handleServiceListRequest() {
-    return JsonResponse.builder().body(Map.of("services", this.serviceManager.services()));
+    return JsonResponse.builder().body(Map.of("META-INF.services", this.serviceManager.services()));
   }
 
   @RequestHandler(path = "/api/v3/service/{id}")
@@ -200,10 +201,9 @@ public final class V3HttpHandlerService {
     @NonNull @RequestPathParam("id") String id,
     @NonNull HttpContext context,
     @Authentication(
-      providers = "jwt",
+      providers = "websocket",
       scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_live_log"}) @NonNull RestUser restUser
   ) {
-    // TODO: can we maybe support this across the cluster using SpecificServiceInfoProvider#toggleScreenEvents
     return this.handleServiceContext(id, service -> {
       var localService = this.serviceManager.localCloudService(service.serviceId().uniqueId());
       if (localService == null) {
@@ -442,9 +442,9 @@ public final class V3HttpHandlerService {
     @NonNull ServiceConsoleLineHandler watchingHandler
   ) implements WebSocketListener {
 
-    private static final String[] REQUIRED_SCOPES = new String[]{
+    private static final Set<String> REQUIRED_SCOPES = Set.of(
       "cloudnet_rest:service_write",
-      "cloudnet_rest:service_send_commands"};
+      "cloudnet_rest:service_send_commands");
 
     @Override
     public void handle(

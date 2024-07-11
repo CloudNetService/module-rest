@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.auth.util;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -27,13 +28,16 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.PSSParameterSpec;
 import java.security.spec.RSAKeyGenParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 
-public final class JwtSecurityUtil {
+public final class KeySecurityUtil {
 
+  public static final String WEB_SOCKET_KEY_ALGORITHM = "HmacSHA256";
   private static final String KEY_ALGORITHM = "RSASSA-PSS";
 
-  private JwtSecurityUtil() {
+  private KeySecurityUtil() {
     throw new UnsupportedOperationException();
   }
 
@@ -65,5 +69,18 @@ public final class JwtSecurityUtil {
     } catch (NoSuchAlgorithmException | InvalidKeySpecException exception) {
       throw new IllegalStateException("Unable to decode RsaSsa-Pss-Sha-512 JWT singing keys", exception);
     }
+  }
+
+  public static @NonNull Key generateHmacSHA256Key() {
+    try {
+      var keyGenerator = KeyGenerator.getInstance(WEB_SOCKET_KEY_ALGORITHM);
+      return keyGenerator.generateKey();
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("Unable to generate HmacSHA256 websocket token singing key", exception);
+    }
+  }
+
+  public static @NonNull Key hmacSHA256KeyFromEncoded(byte[] encodedKey) {
+    return new SecretKeySpec(encodedKey, WEB_SOCKET_KEY_ALGORITHM);
   }
 }

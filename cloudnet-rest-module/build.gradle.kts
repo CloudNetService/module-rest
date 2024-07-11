@@ -29,6 +29,8 @@ dependencies {
   moduleLibrary(libs.jjwtApi)
   moduleLibrary(libs.jjwtImpl)
   moduleLibrary(libs.jjwtGson)
+  
+  implementation(projects.webWsTicketAuth)
 
   implementation(projects.webImplNetty)
   moduleLibrary(libs.nettyHandler)

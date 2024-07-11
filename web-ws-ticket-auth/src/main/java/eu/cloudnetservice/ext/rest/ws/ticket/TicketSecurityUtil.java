@@ -14,35 +14,30 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.auth.ticket;
+package eu.cloudnetservice.ext.rest.ws.ticket;
 
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import javax.crypto.KeyGenerator;
+import java.util.HexFormat;
+import javax.crypto.Mac;
 import lombok.NonNull;
 
 public final class TicketSecurityUtil {
 
-  private static final Path WS_TICKET_SECRET_PATH = Path.of("ws_ticket_secret");
-  private static final HashFunction HMAC_SHA256 = hmacSha256();
+  /*private static final Path WS_TICKET_SECRET_PATH = Path.of("ws_ticket_secret");
+  private static final HashFunction HMAC_SHA256 = hmacSha256();*/
 
   private TicketSecurityUtil() {
     throw new UnsupportedOperationException();
   }
 
-  public static @NonNull String generateTicket(@NonNull String data) {
+  public static @NonNull String signTicket(@NonNull Mac function, @NonNull String data) {
     var base64 = Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
-    var signature = generateTicketSignature(base64);
+    var signature = generateTicketSignature(function, base64);
     return base64 + '.' + signature;
   }
 
-  public static boolean verifyTicketSignature(@NonNull String data) {
+  public static boolean verifyTicketSignature(@NonNull Mac function, @NonNull String data) {
     var ticketParts = data.split(":", 2);
     if (ticketParts.length != 2) {
       return false;
@@ -50,14 +45,14 @@ public final class TicketSecurityUtil {
 
     var base64Data = ticketParts[0];
     var signature = ticketParts[1];
-    return generateTicketSignature(base64Data).equals(signature);
+    return generateTicketSignature(function, base64Data).equals(signature);
   }
 
-  private static @NonNull String generateTicketSignature(@NonNull String base64Data) {
-    return HMAC_SHA256.hashString(base64Data, StandardCharsets.UTF_8).toString();
+  private static @NonNull String generateTicketSignature(@NonNull Mac function, @NonNull String base64Data) {
+    return HexFormat.of().formatHex(function.doFinal(base64Data.getBytes(StandardCharsets.UTF_8)));
   }
 
-  private static @NonNull HashFunction hmacSha256() {
+  /*private static @NonNull HashFunction hmacSha256() {
     try {
       if (Files.notExists(WS_TICKET_SECRET_PATH)) {
         var keyGenerator = KeyGenerator.getInstance("HmacSHA256");
@@ -69,5 +64,5 @@ public final class TicketSecurityUtil {
     } catch (IOException | NoSuchAlgorithmException exception) {
       throw new IllegalStateException("Unable to generate HmacSHA256 websocket signature validation key.", exception);
     }
-  }
+  }*/
 }

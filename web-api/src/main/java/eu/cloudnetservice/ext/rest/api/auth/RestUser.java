@@ -97,18 +97,8 @@ public interface RestUser extends AuditedUser, IntoResponse<Map<String, Object>>
    *
    * @param scopes the scopes to check.
    * @return true if the user has at least one of the given scopes.
-   * @throws NullPointerException if the given scopes array is null.
+   * @throws NullPointerException if the given scopes set is null.
    */
-  default boolean hasOneScopeOf(@NonNull String[] scopes) {
-    for (var scope : scopes) {
-      if (this.hasScope(scope)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   default boolean hasOneScopeOf(@NonNull Set<String> scopes) {
     for (var scope : scopes) {
       if (this.hasScope(scope)) {

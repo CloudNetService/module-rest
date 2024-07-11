@@ -16,16 +16,51 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
+import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedWebSocketTicketBody;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
+import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
+import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
+import eu.cloudnetservice.ext.rest.api.auth.AuthTokenGenerationResult;
+import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
+import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import jakarta.inject.Singleton;
+import java.net.URI;
+import lombok.NonNull;
 
 @Singleton
 public final class V3HttpHandlerWebSocket {
 
-  @RequestHandler(path = "/api/v3/websocket/ticket", method = HttpMethod.POST)
-  public void handleWebSocketTicketRequest() {
+  private static final ProblemDetail WS_REQUESTED_INVALID_SCOPES = ProblemDetail.builder()
+    .title("WebSocket Ticket Creation Requested Invalid Scopes")
+    .type(URI.create("websocket-ticket-creation-invalid-scopes"))
+    .status(HttpResponseCode.FORBIDDEN)
+    .detail("Requested scopes for the websocket tickets that the user is not allowed to use.")
+    .build();
 
+  private final AuthProvider<?> wsAuthProvider;
+  private final RestUserManagement restUserManagement;
+
+  public V3HttpHandlerWebSocket() {
+    this.wsAuthProvider = AuthProviderLoader.resolveAuthProvider("websocket");
+    this.restUserManagement = RestUserManagementLoader.load();
   }
 
+  @RequestHandler(path = "/api/v3/websocket/ticket", method = HttpMethod.POST)
+  public @NonNull IntoResponse<?> handleWebSocketTicketRequest(
+    @NonNull @Authentication(providers = "jwt", scopes = {"cloudnet_rest:websocket_ticket"}) RestUser user,
+    @NonNull @RequestTypedBody ScopedWebSocketTicketBody body
+  ) {
+    var generationResult = this.wsAuthProvider.generateAuthToken(this.restUserManagement, user, body.scopes());
+    return switch (generationResult) {
+      case AuthTokenGenerationResult.Success<?> success -> success.authToken();
+      case AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES -> WS_REQUESTED_INVALID_SCOPES;
+    };
+  }
 }

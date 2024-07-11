@@ -16,9 +16,11 @@
 
 package eu.cloudnetservice.ext.modules.rest.dto.auth;
 
+import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.util.Set;
-import org.jetbrains.annotations.Nullable;
 
-public record ScopedJwtBody(@Nullable Set<String> scopes) {
+public record ScopedJwtBody(Set<@NotNull @Pattern(regexp = RestUser.SCOPE_NAMING_REGEX) String> scopes) {
 
 }

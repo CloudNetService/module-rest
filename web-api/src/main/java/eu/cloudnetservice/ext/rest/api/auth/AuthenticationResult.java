@@ -61,8 +61,9 @@ public sealed interface AuthenticationResult permits
   /**
    * A successful authentication result containing the authenticated subject.
    *
-   * @param restUser the rest user that was successfully authenticated, not null.
-   * @param tokenId the id of the token used for auth, null in case the tokens have no id.
+   * @param restUser the rest user that was successfully authenticated, null if the authentication does not know about a
+   *                 user.
+   * @param tokenId  the id of the token used for auth, null in case the tokens have no id.
    * @since 1.0
    */
   record Success(@NonNull RestUser restUser, @Nullable String tokenId) implements AuthenticationResult {

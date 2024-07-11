@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.api.auth.ticket;
+package eu.cloudnetservice.ext.modules.rest.dto.auth;
 
-import lombok.NonNull;
+import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import java.util.Set;
 
-public sealed interface WebSocketTicketResult permits
-  WebSocketTicketResult.Constant,
-  WebSocketTicketResult.Success {
+public record ScopedWebSocketTicketBody(
+  @NotNull Set<@NotNull @Pattern(regexp = RestUser.SCOPE_NAMING_REGEX) String> scopes
+) {
 
-  record Success<T>(@NonNull WebSocketTicket<T> ticket) implements WebSocketTicketResult {
-
-  }
-
-  enum Constant implements WebSocketTicketResult {
-    SCOPE_MIS_MATCH;
-  }
 }

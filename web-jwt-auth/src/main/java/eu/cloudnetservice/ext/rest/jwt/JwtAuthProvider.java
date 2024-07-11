@@ -159,13 +159,15 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
         var tokenId = token.getPayload().getId();
         var tokenType = token.getPayload().get("type", String.class);
 
-        // ensure that the user has one of the required scopes and of the jwt is scoped,
+        // ensure that the user has one of the required scopes and if the jwt is scoped,
         // that the jwt contains the correct scopes
         var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.<String>of());
-        for (var requiredScope : requiredScopes) {
-          if (!existingScopes.contains(requiredScope) || !user.hasScope(requiredScope)) {
+        if (existingScopes.isEmpty()) {
+          if (!user.hasOneScopeOf(requiredScopes)) {
             return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
           }
+        } else {
+          existingScopes
         }
 
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
@@ -262,6 +264,16 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     }
 
     return new JwtTokenHolder(jwtTokenBuilder.compact(), tokenId, expiration, tokenType);
+  }
+
+  private boolean hasOneScopeOf(@NonNull Set<String> required, @NonNull Set<String> assigned) {
+    for (var requiredScope : required) {
+      if (assigned.contains(requiredScope)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   protected boolean checkValidTokenId(@NonNull Collection<JwtTokenHolder> tokens, @NonNull String tokenId) {

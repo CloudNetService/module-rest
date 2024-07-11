@@ -20,60 +20,52 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.modules.rest.CloudNetRestModule;
 import eu.cloudnetservice.ext.modules.rest.auth.util.KeySecurityUtil;
-import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
-import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
+import eu.cloudnetservice.ext.rest.ws.ticket.WebSocketTicketAuthProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyPair;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import javax.crypto.Mac;
 import lombok.NonNull;
 
-public final class CloudNetJwtAuthProvider extends JwtAuthProvider {
+public class CloudNetWebSocketAuthProvider extends WebSocketTicketAuthProvider {
 
-  private static final Path PRIVATE_KEY_PATH = Path.of("jwt_sign_key");
-  private static final Path PUBLIC_KEY_PATH = Path.of("jwt_sign_key.pub");
+  private static final Path HMAC_KEY_PATH = Path.of("ws_sign_key");
+  private static final Duration TICKET_EXPIRATION_DURATION = Duration.ofSeconds(15);
 
-  public CloudNetJwtAuthProvider() {
-    super("CloudNet Rest",
-      readOrGenerateJwtKeyPair(),
-      Duration.ofHours(12),
-      Duration.ofDays(3));
+  public CloudNetWebSocketAuthProvider() {
+    super(TICKET_EXPIRATION_DURATION, readOrGenenerateMAC());
   }
 
-  private static @NonNull KeyPair readOrGenerateJwtKeyPair() {
+  private static @NonNull Mac readOrGenenerateMAC() {
     try {
       // hack: due to this class being constructed via SPI, we use injection layer here
       // resolving works via the class loader, but we ensure anyway that we did not get the ext layer as fallback
       // it must be the module layer in order to provide the correct instance to get the module data directory
-      var moduleInjectLayer = InjectionLayer.findLayerOf(CloudNetJwtAuthProvider.class.getClassLoader());
+      var moduleInjectLayer = InjectionLayer.findLayerOf(CloudNetWebSocketAuthProvider.class.getClassLoader());
       Preconditions.checkState(moduleInjectLayer != InjectionLayer.ext(), "Cannot resolve module injection layer");
 
       // resolve the path where the private and public key for jwt singing should be located
       var moduleDataDir = moduleInjectLayer.instance(CloudNetRestModule.class).moduleWrapper().dataDirectory();
-      var publicKeyPath = moduleDataDir.resolve(PUBLIC_KEY_PATH);
-      var privateKeyPath = moduleDataDir.resolve(PRIVATE_KEY_PATH);
+      var hmacKeyPath = moduleDataDir.resolve(HMAC_KEY_PATH);
 
-      // if one of the keys is missing the key pair is incomplete - generate new keys in that case
-      if (Files.notExists(publicKeyPath) || Files.notExists(privateKeyPath)) {
-        var jwtSignKeyPair = KeySecurityUtil.generateRsaPssKeyPair();
+      if (Files.notExists(hmacKeyPath)) {
+        var hmacSHA256Key = KeySecurityUtil.generateHmacSHA256Key();
 
         Files.createDirectories(moduleDataDir);
-        Files.write(publicKeyPath, jwtSignKeyPair.getPublic().getEncoded());
-        Files.write(privateKeyPath, jwtSignKeyPair.getPrivate().getEncoded());
+        Files.write(hmacKeyPath, hmacSHA256Key.getEncoded());
       }
 
-      // read and decode the jwt signing key pair
-      var encodedPublicKey = Files.readAllBytes(publicKeyPath);
-      var encodedPrivateKey = Files.readAllBytes(privateKeyPath);
-      return KeySecurityUtil.pairFromEncodedKeys(encodedPublicKey, encodedPrivateKey);
-    } catch (IOException exception) {
+      // read and decode the HmacSHA256 key for ws tickets
+      var decodedHmacSHA256Key = KeySecurityUtil.hmacSHA256KeyFromEncoded(Files.readAllBytes(hmacKeyPath));
+      var mac = Mac.getInstance(KeySecurityUtil.WEB_SOCKET_KEY_ALGORITHM);
+      mac.init(decodedHmacSHA256Key);
+      return mac;
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeyException exception) {
       throw new IllegalStateException("Unable to initialize JWT signing key pair", exception);
     }
   }
 
-  @Override
-  public int priority() {
-    return AuthProvider.DEFAULT_PRIORITY + 10;
-  }
 }
