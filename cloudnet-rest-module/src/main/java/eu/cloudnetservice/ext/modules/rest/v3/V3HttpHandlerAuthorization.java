@@ -75,7 +75,7 @@ public final class V3HttpHandlerAuthorization {
     var scopes = body.scopes() != null ? body.scopes() : Set.<String>of();
     var result = this.jwtAuthProvider.generateAuthToken(this.userManagement, user, scopes);
     return switch (result) {
-      case AuthTokenGenerationResult.Success<?> ignored -> ignored.authToken();
+      case AuthTokenGenerationResult.Success<?> success -> success.authToken();
       case AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES -> AUTH_REQUESTED_INVALID_SCOPES;
     };
   }

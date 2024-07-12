@@ -47,7 +47,7 @@ public final class AuthProviderLoader {
       .sorted(Comparator.comparingInt(AuthProvider::priority))
       .collect(Collectors.toMap(
         authProvider -> authProvider.name().toLowerCase(Locale.ROOT),
-        value -> (AuthProvider) value,
+        value -> value,
         (left, __) -> left));
   }
 

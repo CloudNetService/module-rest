@@ -175,7 +175,7 @@ public final class V3HttpHandlerNode {
   public @NonNull IntoResponse<?> handleLiveConsoleRequest(
     @NonNull HttpContext context,
     @Authentication(
-      providers = "jwt",
+      providers = "websocket",
       scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"}) @NonNull RestUser restUser
   ) {
     context.upgrade().thenAccept(channel -> {
