@@ -21,11 +21,9 @@ import java.util.Base64;
 import java.util.HexFormat;
 import javax.crypto.Mac;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class TicketSecurityUtil {
-
-  /*private static final Path WS_TICKET_SECRET_PATH = Path.of("ws_ticket_secret");
-  private static final HashFunction HMAC_SHA256 = hmacSha256();*/
 
   private TicketSecurityUtil() {
     throw new UnsupportedOperationException();
@@ -38,7 +36,7 @@ public final class TicketSecurityUtil {
   }
 
   public static boolean verifyTicketSignature(@NonNull Mac function, @NonNull String data) {
-    var ticketParts = data.split(":", 2);
+    var ticketParts = data.split("\\.", 2);
     if (ticketParts.length != 2) {
       return false;
     }
@@ -48,21 +46,17 @@ public final class TicketSecurityUtil {
     return generateTicketSignature(function, base64Data).equals(signature);
   }
 
+  public static @Nullable String extractTicketInformation(@NonNull String ticket) {
+    var ticketParts = ticket.split("\\.", 2);
+    if (ticketParts.length != 2) {
+      return null;
+    }
+
+    var data = Base64.getDecoder().decode(ticketParts[0]);
+    return new String(data, StandardCharsets.UTF_8);
+  }
+
   private static @NonNull String generateTicketSignature(@NonNull Mac function, @NonNull String base64Data) {
     return HexFormat.of().formatHex(function.doFinal(base64Data.getBytes(StandardCharsets.UTF_8)));
   }
-
-  /*private static @NonNull HashFunction hmacSha256() {
-    try {
-      if (Files.notExists(WS_TICKET_SECRET_PATH)) {
-        var keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-        var secretKey = keyGenerator.generateKey().getEncoded();
-        Files.write(WS_TICKET_SECRET_PATH, secretKey);
-      }
-
-      return Hashing.hmacSha256(Files.readAllBytes(WS_TICKET_SECRET_PATH));
-    } catch (IOException | NoSuchAlgorithmException exception) {
-      throw new IllegalStateException("Unable to generate HmacSHA256 websocket signature validation key.", exception);
-    }
-  }*/
 }

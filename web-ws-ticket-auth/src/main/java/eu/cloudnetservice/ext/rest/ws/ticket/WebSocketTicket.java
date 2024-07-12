@@ -36,7 +36,12 @@ public record WebSocketTicket(
   public static final String PROPERTY_DELIMITER = ":";
   public static final String SCOPE_DELIMITER = ";";
 
-  public static @Nullable WebSocketTicket parseTicket(@NonNull String ticketToken) {
+  public static @Nullable WebSocketTicket parseTicket(@NonNull String ticketSecret) {
+    var ticketToken = TicketSecurityUtil.extractTicketInformation(ticketSecret);
+    if (ticketToken == null) {
+      return null;
+    }
+
     var parts = ticketToken.split(PROPERTY_DELIMITER, 3);
     var millis = parts[0];
 

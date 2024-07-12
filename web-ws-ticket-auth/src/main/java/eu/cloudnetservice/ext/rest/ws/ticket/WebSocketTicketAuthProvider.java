@@ -137,7 +137,7 @@ public class WebSocketTicketAuthProvider implements AuthProvider<WebSocketTicket
       return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
     }
 
-    return new AuthenticationResult.Success(user, null);
+    return new AuthenticationResult.Success(scopedUser, null);
   }
 
   private @NonNull WebSocketTicket generateWebSocketTicket(@NonNull UUID userId, @NonNull Set<String> scopes) {
