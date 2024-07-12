@@ -30,11 +30,14 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.net.URI;
 import lombok.NonNull;
 
 @Singleton
+@EnableValidation
 public final class V3HttpHandlerWebSocket {
 
   private static final ProblemDetail WS_REQUESTED_INVALID_SCOPES = ProblemDetail.builder()
@@ -55,7 +58,7 @@ public final class V3HttpHandlerWebSocket {
   @RequestHandler(path = "/api/v3/websocket/ticket", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleWebSocketTicketRequest(
     @NonNull @Authentication(providers = "jwt", scopes = {"cloudnet_rest:websocket_ticket"}) RestUser user,
-    @NonNull @RequestTypedBody ScopedWebSocketTicketBody body
+    @NonNull @Valid @RequestTypedBody ScopedWebSocketTicketBody body
   ) {
     var generationResult = this.wsAuthProvider.generateAuthToken(this.restUserManagement, user, body.scopes());
     return switch (generationResult) {

@@ -36,9 +36,11 @@ import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtTokenHolder;
 import eu.cloudnetservice.ext.rest.jwt.JwtTokenPropertyParser;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +49,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
+@EnableValidation
 public final class V3HttpHandlerAuthorization {
 
   private static final ProblemDetail AUTH_REQUESTED_INVALID_SCOPES = ProblemDetail.builder()
@@ -67,7 +70,7 @@ public final class V3HttpHandlerAuthorization {
   @RequestHandler(path = "/api/v3/auth", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(
     @Authentication(providers = "basic") @NonNull RestUser user,
-    @NonNull @RequestTypedBody ScopedJwtBody body
+    @NonNull @Valid @RequestTypedBody ScopedJwtBody body
   ) {
     var scopes = body.scopes() != null ? body.scopes() : Set.<String>of();
     var result = this.jwtAuthProvider.generateAuthToken(this.userManagement, user, scopes);

@@ -24,6 +24,7 @@ import eu.cloudnetservice.ext.rest.api.auth.AuthTokenGenerationResult;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
+import eu.cloudnetservice.ext.rest.api.auth.ScopedRestUserDelegate;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -162,16 +163,15 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
         // ensure that the user has one of the required scopes and if the jwt is scoped,
         // that the jwt contains the correct scopes
         var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.<String>of());
-        if (existingScopes.isEmpty()) {
-          if (!user.hasOneScopeOf(requiredScopes)) {
-            return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
-          }
-        } else {
-          existingScopes
+        // wrap the user to ensure that only the scopes in the jwt are used
+        var scopedUser = new ScopedRestUserDelegate(user, Set.copyOf(existingScopes));
+        // ensure that we only pass if the user has one of the required scopes
+        if (!scopedUser.hasOneScopeOf(requiredScopes)) {
+          return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
         }
 
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
-          return new AuthenticationResult.Success(user, tokenId);
+          return new AuthenticationResult.Success(scopedUser, tokenId);
         } else {
           return new AuthenticationResult.InvalidTokenType(user, new HashSet<>(existingScopes), tokenId, tokenType);
         }
@@ -264,16 +264,6 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     }
 
     return new JwtTokenHolder(jwtTokenBuilder.compact(), tokenId, expiration, tokenType);
-  }
-
-  private boolean hasOneScopeOf(@NonNull Set<String> required, @NonNull Set<String> assigned) {
-    for (var requiredScope : required) {
-      if (assigned.contains(requiredScope)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   protected boolean checkValidTokenId(@NonNull Collection<JwtTokenHolder> tokens, @NonNull String tokenId) {

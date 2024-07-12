@@ -22,6 +22,7 @@ import eu.cloudnetservice.ext.rest.api.auth.AuthTokenGenerationResult;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
+import eu.cloudnetservice.ext.rest.api.auth.ScopedRestUserDelegate;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -129,10 +130,11 @@ public class WebSocketTicketAuthProvider implements AuthProvider<WebSocketTicket
       return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
 
-    for (var requiredScope : requiredScopes) {
-      if (!ticket.scopes().contains(requiredScope)) {
-        return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
-      }
+    // wrap the user to ensure that only the scopes in the jwt are used
+    var scopedUser = new ScopedRestUserDelegate(user, ticket.scopes());
+    // ensure to only pass if the user has one of the required scopes
+    if (!scopedUser.hasOneScopeOf(requiredScopes)) {
+      return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
     }
 
     return new AuthenticationResult.Success(user, null);
