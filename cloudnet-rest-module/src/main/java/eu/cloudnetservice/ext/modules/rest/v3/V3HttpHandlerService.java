@@ -84,7 +84,7 @@ public final class V3HttpHandlerService {
   @RequestHandler(path = "/api/v3/service")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_list"})
   public @NonNull IntoResponse<?> handleServiceListRequest() {
-    return JsonResponse.builder().body(Map.of("META-INF.services", this.serviceManager.services()));
+    return JsonResponse.builder().body(Map.of("services", this.serviceManager.services()));
   }
 
   @RequestHandler(path = "/api/v3/service/{id}")
