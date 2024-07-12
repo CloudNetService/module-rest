@@ -53,16 +53,15 @@ public sealed interface AuthenticationResult permits
      */
     INVALID_CREDENTIALS,
     /**
-     * TODO:
+     * The user does not have the scopes required by the handler.
      */
-    REQUESTED_INVALID_SCOPES;
+    MISSING_REQUIRED_SCOPES;
   }
 
   /**
    * A successful authentication result containing the authenticated subject.
    *
-   * @param restUser the rest user that was successfully authenticated, null if the authentication does not know about a
-   *                 user.
+   * @param restUser the rest user that was successfully authenticated, not null.
    * @param tokenId  the id of the token used for auth, null in case the tokens have no id.
    * @since 1.0
    */

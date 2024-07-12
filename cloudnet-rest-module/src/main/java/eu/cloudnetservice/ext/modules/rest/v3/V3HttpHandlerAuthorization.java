@@ -59,7 +59,7 @@ public final class V3HttpHandlerAuthorization {
     .detail("The scoped refresh token contains a scope that is not valid anymore.")
     .build();
 
-  private final AuthProvider<?> jwtAuthProvider;
+  private final AuthProvider jwtAuthProvider;
   private final RestUserManagement userManagement;
 
   public V3HttpHandlerAuthorization() {

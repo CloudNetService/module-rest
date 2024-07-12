@@ -47,7 +47,7 @@ public final class V3HttpHandlerWebSocket {
     .detail("Requested scopes for the websocket tickets that the user is not allowed to use.")
     .build();
 
-  private final AuthProvider<?> wsAuthProvider;
+  private final AuthProvider wsAuthProvider;
   private final RestUserManagement restUserManagement;
 
   public V3HttpHandlerWebSocket() {

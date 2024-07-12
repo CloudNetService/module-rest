@@ -84,7 +84,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
     return null;
   }
 
-  private static @NonNull List<? extends AuthProvider<?>> resolveProviders(@NonNull Authentication authentication) {
+  private static @NonNull List<? extends AuthProvider> resolveProviders(@NonNull Authentication authentication) {
     var providers = Arrays.stream(authentication.providers()).map(AuthProviderLoader::resolveAuthProvider).toList();
     if (providers.isEmpty()) {
       throw new IllegalArgumentException("No auth providers given in @Authentication annotation");
@@ -152,7 +152,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
 
   private @NonNull RestUser tryAuthenticateRequest(
     @NonNull HttpContext context,
-    @NonNull List<? extends AuthProvider<?>> provider,
+    @NonNull List<? extends AuthProvider> provider,
     @NonNull Set<String> scopes
   ) {
     // try all requested auth providers until we find one that can handle the authentication process
@@ -167,7 +167,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
     return switch (authenticationResult) {
       case AuthenticationResult.Success success -> success.restUser();
       case AuthenticationResult.Constant.PROCEED -> throw new ProblemHttpHandleException(AUTH_METHOD_UNKNOWN);
-      case AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES ->
+      case AuthenticationResult.Constant.MISSING_REQUIRED_SCOPES ->
         throw new ProblemHttpHandleException(AUTH_REQUIRED_SCOPE_MISSING);
       default -> throw new ProblemHttpHandleException(AUTH_INVALID);
     };

@@ -46,7 +46,7 @@ import lombok.NonNull;
 @Description("module-rest-command-description")
 public final class RestCommand {
 
-  private final AuthProvider<?> authProvider;
+  private final AuthProvider authProvider;
   private final RestUserManagement restUserManagement;
 
   @Inject

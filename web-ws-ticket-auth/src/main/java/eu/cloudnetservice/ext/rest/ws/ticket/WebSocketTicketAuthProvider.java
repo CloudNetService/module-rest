@@ -33,7 +33,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import lombok.NonNull;
 
-public class WebSocketTicketAuthProvider implements AuthProvider<WebSocketTicket> {
+public class WebSocketTicketAuthProvider implements AuthProvider {
 
   private static final String QUERY_PARAMETER_NAME = "ticket";
 
@@ -134,7 +134,7 @@ public class WebSocketTicketAuthProvider implements AuthProvider<WebSocketTicket
     var scopedUser = new ScopedRestUserDelegate(user, ticket.scopes());
     // ensure to only pass if the user has one of the required scopes
     if (!scopedUser.hasOneScopeOf(requiredScopes)) {
-      return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
+      return AuthenticationResult.Constant.MISSING_REQUIRED_SCOPES;
     }
 
     return new AuthenticationResult.Success(scopedUser, null);

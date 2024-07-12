@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -48,7 +47,7 @@ import javax.crypto.SecretKey;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
+public class JwtAuthProvider implements AuthProvider {
 
   public static final String JWT_TOKEN_PAIR_KEY = "jwt_token_pair";
 
@@ -167,7 +166,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
         var scopedUser = new ScopedRestUserDelegate(user, Set.copyOf(existingScopes));
         // ensure that we only pass if the user has one of the required scopes
         if (!scopedUser.hasOneScopeOf(requiredScopes)) {
-          return AuthenticationResult.Constant.REQUESTED_INVALID_SCOPES;
+          return AuthenticationResult.Constant.MISSING_REQUIRED_SCOPES;
         }
 
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {

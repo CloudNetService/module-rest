@@ -31,7 +31,7 @@ public final class AuthProviderLoader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthProviderLoader.class);
 
-  private static final Map<String, AuthProvider<?>> AUTH_PROVIDERS;
+  private static final Map<String, AuthProvider> AUTH_PROVIDERS;
 
   static {
     AUTH_PROVIDERS = ServiceLoader.load(AuthProvider.class, AuthProvider.class.getClassLoader()).stream()
@@ -47,7 +47,7 @@ public final class AuthProviderLoader {
       .sorted(Comparator.comparingInt(AuthProvider::priority))
       .collect(Collectors.toMap(
         authProvider -> authProvider.name().toLowerCase(Locale.ROOT),
-        value -> (AuthProvider<?>) value,
+        value -> (AuthProvider) value,
         (left, __) -> left));
   }
 
@@ -55,7 +55,7 @@ public final class AuthProviderLoader {
     throw new UnsupportedOperationException();
   }
 
-  public static @NonNull AuthProvider<?> resolveAuthProvider(@NonNull String name) {
+  public static @NonNull AuthProvider resolveAuthProvider(@NonNull String name) {
     var authProvider = AUTH_PROVIDERS.get(name.toLowerCase(Locale.ROOT));
     if (authProvider == null) {
       throw new IllegalArgumentException("No auth provider registered with name: " + name);

@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 
-public class BasicAuthProvider implements AuthProvider<Void> {
+public class BasicAuthProvider implements AuthProvider {
 
   private static final byte BASIC_AUTH_DELIM_CHAR = ':' & 0xFF;
   private static final Pattern BASIC_LOGIN_PATTERN = Pattern.compile("Basic ([a-zA-Z0-9-_=]+)$");
