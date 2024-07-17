@@ -44,6 +44,6 @@ public sealed interface AuthTokenGenerationResult permits
     /**
      * The user requested scopes for the token that are not assigned to himself.
      */
-    REQUESTED_INVALID_SCOPES;
+    REQUESTED_INVALID_SCOPES,
   }
 }

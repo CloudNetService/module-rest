@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public final class AuthProviderLoader {
       .sorted(Comparator.comparingInt(AuthProvider::priority))
       .collect(Collectors.toMap(
         authProvider -> authProvider.name().toLowerCase(Locale.ROOT),
-        value -> value,
+        Function.identity(),
         (left, __) -> left));
   }
 

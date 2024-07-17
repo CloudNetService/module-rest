@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.ws.ticket;
+package eu.cloudnetservice.ext.rest.ticket;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -23,14 +23,14 @@ import javax.crypto.Mac;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class TicketSecurityUtil {
+final class TicketSecurityUtil {
 
   private TicketSecurityUtil() {
     throw new UnsupportedOperationException();
   }
 
   public static @NonNull String signTicket(@NonNull Mac function, @NonNull String data) {
-    var base64 = Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
+    var base64 = Base64.getUrlEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
     var signature = generateTicketSignature(function, base64);
     return base64 + '.' + signature;
   }
@@ -52,7 +52,7 @@ public final class TicketSecurityUtil {
       return null;
     }
 
-    var data = Base64.getDecoder().decode(ticketParts[0]);
+    var data = Base64.getUrlDecoder().decode(ticketParts[0]);
     return new String(data, StandardCharsets.UTF_8);
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.ws.ticket;
+package eu.cloudnetservice.ext.rest.ticket;
 
 import eu.cloudnetservice.ext.rest.api.auth.AuthToken;
 import eu.cloudnetservice.ext.rest.api.response.Response;
@@ -26,7 +26,7 @@ import java.util.UUID;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public record WebSocketTicket(
+public record Ticket(
   @NonNull UUID userId,
   @NonNull Instant creationTime,
   @NonNull String token,
@@ -36,7 +36,7 @@ public record WebSocketTicket(
   public static final String PROPERTY_DELIMITER = ":";
   public static final String SCOPE_DELIMITER = ";";
 
-  public static @Nullable WebSocketTicket parseTicket(@NonNull String ticketSecret) {
+  public static @Nullable Ticket parseTicket(@NonNull String ticketSecret) {
     var ticketToken = TicketSecurityUtil.extractTicketInformation(ticketSecret);
     if (ticketToken == null) {
       return null;
@@ -49,12 +49,12 @@ public record WebSocketTicket(
       var creationTime = Instant.ofEpochMilli(Long.parseLong(millis));
       var userId = UUID.fromString(parts[1]);
 
-      Set<String> scopes = java.util.Set.of();
+      Set<String> scopes = Set.of();
       if (parts.length == 3) {
-        scopes = java.util.Set.of(parts[2].split(SCOPE_DELIMITER));
+        scopes = Set.of(parts[2].split(SCOPE_DELIMITER));
       }
 
-      return new WebSocketTicket(userId, creationTime, ticketToken, scopes);
+      return new Ticket(userId, creationTime, ticketToken, scopes);
     } catch (IllegalArgumentException exception) {
       return null;
     }
@@ -63,11 +63,8 @@ public record WebSocketTicket(
   @Override
   public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
     return JsonResponse.<Map<String, Object>>builder().body(Map.of(
-      "creationTime",
-      this.creationTime.toEpochMilli(),
-      "secret",
-      this.token,
-      "scopes",
-      this.scopes));
+      "creationTime", this.creationTime.toEpochMilli(),
+      "secret", this.token,
+      "scopes", this.scopes));
   }
 }

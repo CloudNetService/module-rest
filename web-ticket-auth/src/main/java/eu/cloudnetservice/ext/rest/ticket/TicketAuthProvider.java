@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.ws.ticket;
+package eu.cloudnetservice.ext.rest.ticket;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
@@ -33,7 +33,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import lombok.NonNull;
 
-public class WebSocketTicketAuthProvider implements AuthProvider {
+public class TicketAuthProvider implements AuthProvider {
 
   private static final String QUERY_PARAMETER_NAME = "ticket";
 
@@ -48,18 +48,18 @@ public class WebSocketTicketAuthProvider implements AuthProvider {
 
       DEFAULT_MAC_FUNCTION = mac;
     } catch (NoSuchAlgorithmException | InvalidKeyException exception) {
-      throw new IllegalStateException(exception);
+      throw new ExceptionInInitializerError(exception);
     }
   }
 
   private final Duration ticketDuration;
   private final Mac hashFunction;
 
-  public WebSocketTicketAuthProvider() {
+  public TicketAuthProvider() {
     this(DEFAULT_WEBSOCKET_TICKET_EXPIRATION, DEFAULT_MAC_FUNCTION);
   }
 
-  public WebSocketTicketAuthProvider(@NonNull Duration ticketDuration, @NonNull Mac hashFunction) {
+  public TicketAuthProvider(@NonNull Duration ticketDuration, @NonNull Mac hashFunction) {
     this.hashFunction = hashFunction;
     this.ticketDuration = ticketDuration;
   }
@@ -114,7 +114,7 @@ public class WebSocketTicketAuthProvider implements AuthProvider {
     }
 
     // ensure that we can parse the ticket
-    var ticket = WebSocketTicket.parseTicket(ticketToken);
+    var ticket = Ticket.parseTicket(ticketToken);
     if (ticket == null) {
       return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
@@ -140,17 +140,17 @@ public class WebSocketTicketAuthProvider implements AuthProvider {
     return new AuthenticationResult.Success(scopedUser, null);
   }
 
-  private @NonNull WebSocketTicket generateWebSocketTicket(@NonNull UUID userId, @NonNull Set<String> scopes) {
+  private @NonNull Ticket generateWebSocketTicket(@NonNull UUID userId, @NonNull Set<String> scopes) {
     var creationTime = Instant.now();
     var builder = new StringBuilder()
       .append(creationTime.toEpochMilli())
-      .append(WebSocketTicket.PROPERTY_DELIMITER)
+      .append(Ticket.PROPERTY_DELIMITER)
       .append(userId);
     if (!scopes.isEmpty()) {
-      builder.append(WebSocketTicket.PROPERTY_DELIMITER).append(String.join(WebSocketTicket.SCOPE_DELIMITER, scopes));
+      builder.append(Ticket.PROPERTY_DELIMITER).append(String.join(Ticket.SCOPE_DELIMITER, scopes));
     }
 
     var token = TicketSecurityUtil.signTicket(this.hashFunction, builder.toString());
-    return new WebSocketTicket(userId, creationTime, token, scopes);
+    return new Ticket(userId, creationTime, token, scopes);
   }
 }

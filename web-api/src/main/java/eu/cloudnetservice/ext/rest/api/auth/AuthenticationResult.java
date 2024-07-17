@@ -55,7 +55,7 @@ public sealed interface AuthenticationResult permits
     /**
      * The user does not have the scopes required by the handler.
      */
-    MISSING_REQUIRED_SCOPES;
+    MISSING_REQUIRED_SCOPES,
   }
 
   /**

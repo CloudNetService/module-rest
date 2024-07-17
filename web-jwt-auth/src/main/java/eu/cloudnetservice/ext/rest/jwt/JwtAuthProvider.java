@@ -36,7 +36,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -161,9 +160,11 @@ public class JwtAuthProvider implements AuthProvider {
 
         // ensure that the user has one of the required scopes and if the jwt is scoped,
         // that the jwt contains the correct scopes
-        var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.<String>of());
+        var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.of());
+        // we will need the copy for the user & the response token
+        var scopesCopy = Set.copyOf(existingScopes);
         // wrap the user to ensure that only the scopes in the jwt are used
-        var scopedUser = new ScopedRestUserDelegate(user, Set.copyOf(existingScopes));
+        var scopedUser = new ScopedRestUserDelegate(user, scopesCopy);
         // ensure that we only pass if the user has one of the required scopes
         if (!scopedUser.hasOneScopeOf(requiredScopes)) {
           return AuthenticationResult.Constant.MISSING_REQUIRED_SCOPES;
@@ -172,7 +173,7 @@ public class JwtAuthProvider implements AuthProvider {
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
           return new AuthenticationResult.Success(scopedUser, tokenId);
         } else {
-          return new AuthenticationResult.InvalidTokenType(user, new HashSet<>(existingScopes), tokenId, tokenType);
+          return new AuthenticationResult.InvalidTokenType(user, scopesCopy, tokenId, tokenType);
         }
       } else {
         return AuthenticationResult.Constant.INVALID_CREDENTIALS;

@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.modules.rest.CloudNetRestModule;
 import eu.cloudnetservice.ext.modules.rest.auth.util.KeySecurityUtil;
-import eu.cloudnetservice.ext.rest.ws.ticket.WebSocketTicketAuthProvider;
+import eu.cloudnetservice.ext.rest.ticket.TicketAuthProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,12 +30,12 @@ import java.time.Duration;
 import javax.crypto.Mac;
 import lombok.NonNull;
 
-public class CloudNetWebSocketAuthProvider extends WebSocketTicketAuthProvider {
+public class CloudNetAuthProvider extends TicketAuthProvider {
 
   private static final Path HMAC_KEY_PATH = Path.of("ws_sign_key");
   private static final Duration TICKET_EXPIRATION_DURATION = Duration.ofSeconds(15);
 
-  public CloudNetWebSocketAuthProvider() {
+  public CloudNetAuthProvider() {
     super(TICKET_EXPIRATION_DURATION, readOrGenenerateMAC());
   }
 
@@ -44,7 +44,7 @@ public class CloudNetWebSocketAuthProvider extends WebSocketTicketAuthProvider {
       // hack: due to this class being constructed via SPI, we use injection layer here
       // resolving works via the class loader, but we ensure anyway that we did not get the ext layer as fallback
       // it must be the module layer in order to provide the correct instance to get the module data directory
-      var moduleInjectLayer = InjectionLayer.findLayerOf(CloudNetWebSocketAuthProvider.class.getClassLoader());
+      var moduleInjectLayer = InjectionLayer.findLayerOf(CloudNetAuthProvider.class.getClassLoader());
       Preconditions.checkState(moduleInjectLayer != InjectionLayer.ext(), "Cannot resolve module injection layer");
 
       // resolve the path where the private and public key for jwt singing should be located

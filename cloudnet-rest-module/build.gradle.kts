@@ -30,7 +30,7 @@ dependencies {
   moduleLibrary(libs.jjwtImpl)
   moduleLibrary(libs.jjwtGson)
   
-  implementation(projects.webWsTicketAuth)
+  implementation(projects.webTicketAuth)
 
   implementation(projects.webImplNetty)
   moduleLibrary(libs.nettyHandler)

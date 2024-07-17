@@ -181,7 +181,6 @@ public final class V3HttpHandlerNode {
     context.upgrade().thenAccept(channel -> {
       if (this.logger instanceof ch.qos.logback.classic.Logger logbackLogger) {
         var webSocketAppender = new WebSocketLogAppender(logbackLogger, restUser, channel);
-
         var appender = logbackLogger.getAppender("Rolling");
         if (appender instanceof OutputStreamAppender<ILoggingEvent> consoleAppender) {
           webSocketAppender.setEncoder(consoleAppender.getEncoder());
@@ -242,7 +241,7 @@ public final class V3HttpHandlerNode {
     }
 
     @Override
-    protected void append(ILoggingEvent event) {
+    protected void append(@NonNull ILoggingEvent event) {
       this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, this.encoder.encode(event));
     }
   }

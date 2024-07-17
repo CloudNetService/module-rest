@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-eu.cloudnetservice.ext.rest.ws.ticket.WebSocketTicketAuthProvider
+eu.cloudnetservice.ext.rest.ticket.TicketAuthProvider
