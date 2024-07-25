@@ -100,6 +100,10 @@ public interface RestUser extends AuditedUser, IntoResponse<Map<String, Object>>
    * @throws NullPointerException if the given scopes set is null.
    */
   default boolean hasOneScopeOf(@NonNull Set<String> scopes) {
+    if (scopes.isEmpty()) {
+      return true;
+    }
+
     for (var scope : scopes) {
       if (this.hasScope(scope)) {
         return true;
