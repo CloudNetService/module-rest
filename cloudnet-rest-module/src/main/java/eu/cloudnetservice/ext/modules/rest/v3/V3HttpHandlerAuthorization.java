@@ -129,8 +129,12 @@ public final class V3HttpHandlerAuthorization {
   }
 
   @RequestHandler(path = "/api/v3/auth/verify", method = HttpMethod.POST)
-  public @NonNull IntoResponse<?> handleVerifyRequest(@NonNull HttpContext context) {
-    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement, Set.of());
+  public @NonNull IntoResponse<?> handleVerifyRequest(
+    @NonNull HttpContext context,
+    @NonNull @Valid @RequestTypedBody ScopedJwtBody body
+  ) {
+    var scopes = body.scopes() != null ? body.scopes() : Set.<String>of();
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement, scopes);
     var convertedAuthResult = this.convertAuthResult(authenticationResult);
     if (convertedAuthResult == null) {
       return ProblemDetail.builder()
