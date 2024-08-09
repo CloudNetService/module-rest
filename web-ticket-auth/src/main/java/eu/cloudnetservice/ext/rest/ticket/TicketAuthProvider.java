@@ -126,7 +126,7 @@ public class TicketAuthProvider implements AuthProvider {
 
     // check that the ticket is not expired
     var expirationTime = ticket.creationTime().plus(this.ticketDuration);
-    if (expirationTime.isAfter(Instant.now())) {
+    if (expirationTime.isBefore(Instant.now())) {
       return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
 
