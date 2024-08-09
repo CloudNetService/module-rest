@@ -201,7 +201,7 @@ public final class V3HttpHandlerService {
     @NonNull @RequestPathParam("id") String id,
     @NonNull HttpContext context,
     @Authentication(
-      providers = "websocket",
+      providers = {"ticket", "jwt"},
       scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_live_log"}) @NonNull RestUser restUser
   ) {
     return this.handleServiceContext(id, service -> {

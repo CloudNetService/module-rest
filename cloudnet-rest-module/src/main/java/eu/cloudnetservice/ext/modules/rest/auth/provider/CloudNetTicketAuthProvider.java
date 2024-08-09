@@ -30,12 +30,12 @@ import java.time.Duration;
 import javax.crypto.Mac;
 import lombok.NonNull;
 
-public class CloudNetAuthProvider extends TicketAuthProvider {
+public final class CloudNetTicketAuthProvider extends TicketAuthProvider {
 
-  private static final Path HMAC_KEY_PATH = Path.of("ws_sign_key");
+  private static final Path HMAC_KEY_PATH = Path.of("ticket_sign_key");
   private static final Duration TICKET_EXPIRATION_DURATION = Duration.ofSeconds(15);
 
-  public CloudNetAuthProvider() {
+  public CloudNetTicketAuthProvider() {
     super(TICKET_EXPIRATION_DURATION, readOrGenenerateMAC());
   }
 
@@ -44,7 +44,7 @@ public class CloudNetAuthProvider extends TicketAuthProvider {
       // hack: due to this class being constructed via SPI, we use injection layer here
       // resolving works via the class loader, but we ensure anyway that we did not get the ext layer as fallback
       // it must be the module layer in order to provide the correct instance to get the module data directory
-      var moduleInjectLayer = InjectionLayer.findLayerOf(CloudNetAuthProvider.class.getClassLoader());
+      var moduleInjectLayer = InjectionLayer.findLayerOf(CloudNetTicketAuthProvider.class.getClassLoader());
       Preconditions.checkState(moduleInjectLayer != InjectionLayer.ext(), "Cannot resolve module injection layer");
 
       // resolve the path where the private and public key for jwt singing should be located
@@ -60,7 +60,7 @@ public class CloudNetAuthProvider extends TicketAuthProvider {
 
       // read and decode the HmacSHA256 key for ws tickets
       var decodedHmacSHA256Key = KeySecurityUtil.hmacSHA256KeyFromEncoded(Files.readAllBytes(hmacKeyPath));
-      var mac = Mac.getInstance(KeySecurityUtil.WEB_SOCKET_KEY_ALGORITHM);
+      var mac = Mac.getInstance(decodedHmacSHA256Key.getAlgorithm());
       mac.init(decodedHmacSHA256Key);
       return mac;
     } catch (IOException | NoSuchAlgorithmException | InvalidKeyException exception) {

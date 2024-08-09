@@ -175,11 +175,11 @@ public final class V3HttpHandlerNode {
   public @NonNull IntoResponse<?> handleLiveConsoleRequest(
     @NonNull HttpContext context,
     @Authentication(
-      providers = "websocket",
+      providers = {"ticket", "jwt"},
       scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"}) @NonNull RestUser restUser
   ) {
-    context.upgrade().thenAccept(channel -> {
-      if (this.logger instanceof ch.qos.logback.classic.Logger logbackLogger) {
+    if (this.logger instanceof ch.qos.logback.classic.Logger logbackLogger) {
+      context.upgrade().thenAccept(channel -> {
         var webSocketAppender = new WebSocketLogAppender(logbackLogger, restUser, channel);
         var appender = logbackLogger.getAppender("Rolling");
         if (appender instanceof OutputStreamAppender<ILoggingEvent> consoleAppender) {
@@ -188,8 +188,14 @@ public final class V3HttpHandlerNode {
 
         logbackLogger.addAppender(webSocketAppender);
         channel.addListener(webSocketAppender);
-      }
-    });
+      });
+    } else {
+      return ProblemDetail.builder()
+        .type("console-unsupported-logger")
+        .title("Console Unsupported Logger")
+        .status(HttpResponseCode.INTERNAL_SERVER_ERROR)
+        .detail("The console logger is not using a supported logback logging implementation.");
+    }
 
     return HttpResponseCode.SWITCHING_PROTOCOLS;
   }

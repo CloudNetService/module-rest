@@ -34,8 +34,8 @@ import lombok.NonNull;
 
 public final class KeySecurityUtil {
 
-  public static final String WEB_SOCKET_KEY_ALGORITHM = "HmacSHA256";
-  private static final String KEY_ALGORITHM = "RSASSA-PSS";
+  public static final String HMAC_SHA_256_ALGORITHM_NAME = "HmacSHA256";
+  private static final String RSA_KEY_ALGORITHM_NAME = "RSASSA-PSS";
 
   private KeySecurityUtil() {
     throw new UnsupportedOperationException();
@@ -52,7 +52,7 @@ public final class KeySecurityUtil {
         PSSParameterSpec.TRAILER_FIELD_BC);
       var rsaKeyGenParameterSpec = new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4, pssParameterSpec);
 
-      var factory = KeyPairGenerator.getInstance(KEY_ALGORITHM);
+      var factory = KeyPairGenerator.getInstance(RSA_KEY_ALGORITHM_NAME);
       factory.initialize(rsaKeyGenParameterSpec);
       return factory.generateKeyPair();
     } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException exception) {
@@ -62,7 +62,7 @@ public final class KeySecurityUtil {
 
   public static @NonNull KeyPair pairFromEncodedKeys(byte[] encodedPublic, byte[] encodedPrivate) {
     try {
-      var keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+      var keyFactory = KeyFactory.getInstance(RSA_KEY_ALGORITHM_NAME);
       var decodedPublicKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublic));
       var decodedPrivateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivate));
       return new KeyPair(decodedPublicKey, decodedPrivateKey);
@@ -73,14 +73,14 @@ public final class KeySecurityUtil {
 
   public static @NonNull Key generateHmacSHA256Key() {
     try {
-      var keyGenerator = KeyGenerator.getInstance(WEB_SOCKET_KEY_ALGORITHM);
+      var keyGenerator = KeyGenerator.getInstance(HMAC_SHA_256_ALGORITHM_NAME);
       return keyGenerator.generateKey();
     } catch (NoSuchAlgorithmException exception) {
-      throw new IllegalStateException("Unable to generate HmacSHA256 websocket token singing key", exception);
+      throw new IllegalStateException("Unable to generate HmacSHA256 ticket signing key", exception);
     }
   }
 
   public static @NonNull Key hmacSHA256KeyFromEncoded(byte[] encodedKey) {
-    return new SecretKeySpec(encodedKey, WEB_SOCKET_KEY_ALGORITHM);
+    return new SecretKeySpec(encodedKey, HMAC_SHA_256_ALGORITHM_NAME);
   }
 }

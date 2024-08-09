@@ -103,8 +103,9 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
       method,
       Authentication.class,
       (param, annotation) -> {
+        var scopes = Set.of(annotation.scopes());
         var provider = resolveProviders(annotation);
-        return context -> this.tryAuthenticateRequest(context, provider, Set.of(annotation.scopes()));
+        return context -> this.tryAuthenticateRequest(context, provider, scopes);
       });
 
     // the auth annotation should only be at one parameter, there is no point in supplying it multiple times
@@ -122,6 +123,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
       var provider = authentication != null ? resolveProviders(authentication) : null;
       if (provider != null) {
         // there were declared auth providers, register a pre-processor to handle authentication
+        var scopes = Set.of(authentication.scopes());
         config.addHandlerInterceptor(new HttpHandlerInterceptor() {
           @Override
           public boolean preProcess(
@@ -129,7 +131,7 @@ public final class AuthenticationProcessor implements HttpAnnotationProcessor {
             @NonNull HttpHandler handler,
             @NonNull HttpHandlerConfig config
           ) {
-            AuthenticationProcessor.this.tryAuthenticateRequest(context, provider, Set.of(authentication.scopes()));
+            AuthenticationProcessor.this.tryAuthenticateRequest(context, provider, scopes);
             return true;
           }
         });

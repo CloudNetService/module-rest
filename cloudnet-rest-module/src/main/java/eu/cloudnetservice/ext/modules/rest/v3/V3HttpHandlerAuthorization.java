@@ -43,6 +43,7 @@ import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -72,7 +73,7 @@ public final class V3HttpHandlerAuthorization {
     @Authentication(providers = "basic") @NonNull RestUser user,
     @NonNull @Valid @RequestTypedBody ScopedJwtBody body
   ) {
-    var scopes = body.scopes() != null ? body.scopes() : Set.<String>of();
+    var scopes = Objects.requireNonNullElse(body.scopes(), Set.<String>of());
     var result = this.jwtAuthProvider.generateAuthToken(this.userManagement, user, scopes);
     return switch (result) {
       case AuthTokenGenerationResult.Success<?> success -> success.authToken();
@@ -133,7 +134,7 @@ public final class V3HttpHandlerAuthorization {
     @NonNull HttpContext context,
     @NonNull @Valid @RequestTypedBody ScopedJwtBody body
   ) {
-    var scopes = body.scopes() != null ? body.scopes() : Set.<String>of();
+    var scopes = Objects.requireNonNullElse(body.scopes(), Set.<String>of());
     var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement, scopes);
     var convertedAuthResult = this.convertAuthResult(authenticationResult);
     if (convertedAuthResult == null) {

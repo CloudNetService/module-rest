@@ -16,4 +16,4 @@
 
 eu.cloudnetservice.ext.modules.rest.auth.provider.CloudNetJwtAuthProvider
 eu.cloudnetservice.ext.modules.rest.auth.provider.CloudNetBasicAuthProvider
-eu.cloudnetservice.ext.modules.rest.auth.provider.CloudNetAuthProvider
+eu.cloudnetservice.ext.modules.rest.auth.provider.CloudNetTicketAuthProvider

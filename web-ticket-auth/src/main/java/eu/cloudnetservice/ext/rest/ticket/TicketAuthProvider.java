@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
@@ -76,7 +77,7 @@ public class TicketAuthProvider implements AuthProvider {
 
   @Override
   public @NonNull String name() {
-    return "websocket";
+    return "ticket";
   }
 
   @Override
@@ -92,7 +93,7 @@ public class TicketAuthProvider implements AuthProvider {
       }
     }
 
-    return new AuthTokenGenerationResult.Success<>(this.generateWebSocketTicket(restUser.id(), scopes));
+    return new AuthTokenGenerationResult.Success<>(this.generateTicket(restUser.id(), scopes));
   }
 
   @Override
@@ -114,7 +115,7 @@ public class TicketAuthProvider implements AuthProvider {
     }
 
     // ensure that we can parse the ticket
-    var ticket = Ticket.parseTicket(ticketToken);
+    var ticket = TicketAuthToken.parseTicket(ticketToken);
     if (ticket == null) {
       return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
@@ -140,17 +141,16 @@ public class TicketAuthProvider implements AuthProvider {
     return new AuthenticationResult.Success(scopedUser, null);
   }
 
-  private @NonNull Ticket generateWebSocketTicket(@NonNull UUID userId, @NonNull Set<String> scopes) {
+  private @NonNull TicketAuthToken generateTicket(@NonNull UUID userId, @NonNull Set<String> scopes) {
     var creationTime = Instant.now();
-    var builder = new StringBuilder()
-      .append(creationTime.toEpochMilli())
-      .append(Ticket.PROPERTY_DELIMITER)
-      .append(userId);
+    var builder = new StringJoiner(TicketAuthToken.PROPERTY_DELIMITER);
+    builder.add(Long.toString(creationTime.getEpochSecond()));
+    builder.add(userId.toString());
     if (!scopes.isEmpty()) {
-      builder.append(Ticket.PROPERTY_DELIMITER).append(String.join(Ticket.SCOPE_DELIMITER, scopes));
+      builder.add(String.join(TicketAuthToken.SCOPE_DELIMITER, scopes));
     }
 
     var token = TicketSecurityUtil.signTicket(this.hashFunction, builder.toString());
-    return new Ticket(userId, creationTime, token, scopes);
+    return new TicketAuthToken(userId, creationTime, token, scopes);
   }
 }
