@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedJwtBody;
+import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedWebSocketTicketBody;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -59,12 +60,21 @@ public final class V3HttpHandlerAuthorization {
     .status(HttpResponseCode.FORBIDDEN)
     .detail("The scoped refresh token contains a scope that is not valid anymore.")
     .build();
+  private static final ProblemDetail TICKET_REQUESTED_INVALID_SCOPES = ProblemDetail.builder()
+    .title("Ticket Creation Requested Invalid Scopes")
+    .type(URI.create("ticket-creation-invalid-scopes"))
+    .status(HttpResponseCode.FORBIDDEN)
+    .detail("Requested scopes for the ticket that the user is not allowed to use.")
+    .build();
 
   private final AuthProvider jwtAuthProvider;
+  private final AuthProvider ticketAuthProvider;
   private final RestUserManagement userManagement;
 
   public V3HttpHandlerAuthorization() {
     this.jwtAuthProvider = AuthProviderLoader.resolveAuthProvider("jwt");
+    this.ticketAuthProvider = AuthProviderLoader.resolveAuthProvider("ticket");
+
     this.userManagement = RestUserManagementLoader.load();
   }
 
@@ -78,6 +88,20 @@ public final class V3HttpHandlerAuthorization {
     return switch (result) {
       case AuthTokenGenerationResult.Success<?> success -> success.authToken();
       case AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES -> AUTH_REQUESTED_INVALID_SCOPES;
+    };
+  }
+
+  @RequestHandler(path = "/api/v3/auth/ticket", method = HttpMethod.POST)
+  public @NonNull IntoResponse<?> handleTicketRequest(
+    @NonNull @Authentication(
+      providers = "jwt",
+      scopes = {"cloudnet_rest:ticket_create", "cloudnet_rest:ticket_write"}) RestUser user,
+    @NonNull @Valid @RequestTypedBody ScopedWebSocketTicketBody body
+  ) {
+    var generationResult = this.ticketAuthProvider.generateAuthToken(this.userManagement, user, body.scopes());
+    return switch (generationResult) {
+      case AuthTokenGenerationResult.Success<?> success -> success.authToken();
+      case AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES -> TICKET_REQUESTED_INVALID_SCOPES;
     };
   }
 

@@ -88,7 +88,7 @@ public class TicketAuthProvider implements AuthProvider {
   ) {
     for (var scope : scopes) {
       if (!restUser.hasScope(scope)) {
-        // the user requested a websocket ticket with scopes the user is not allowed to use
+        // the user requested a ticket with scopes the user is not allowed to use
         return AuthTokenGenerationResult.Constant.REQUESTED_INVALID_SCOPES;
       }
     }

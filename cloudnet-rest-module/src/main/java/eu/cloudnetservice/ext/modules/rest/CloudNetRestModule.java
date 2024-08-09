@@ -41,7 +41,6 @@ import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTask;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplate;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplateStorage;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerUser;
-import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerWebSocket;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
@@ -99,7 +98,6 @@ public final class CloudNetRestModule extends DriverModule {
     @NonNull V3HttpHandlerService serviceHandler,
     @NonNull V3HttpHandlerDatabase databaseHandler,
     @NonNull V3HttpHandlerTemplate templateHandler,
-    @NonNull V3HttpHandlerWebSocket webSocketHandler,
     @NonNull V3HttpHandlerServiceVersion versionHandler,
     @NonNull V3HttpHandlerTemplateStorage storageHandler,
     @NonNull V3HttpHandlerAuthorization authorizationHandler,
@@ -115,7 +113,6 @@ public final class CloudNetRestModule extends DriverModule {
       .parseAndRegister(serviceHandler)
       .parseAndRegister(databaseHandler)
       .parseAndRegister(templateHandler)
-      .parseAndRegister(webSocketHandler)
       .parseAndRegister(versionHandler)
       .parseAndRegister(storageHandler)
       .parseAndRegister(authorizationHandler)
