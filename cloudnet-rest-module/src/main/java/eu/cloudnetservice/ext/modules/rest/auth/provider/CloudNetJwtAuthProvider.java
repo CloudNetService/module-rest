@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.modules.rest.CloudNetRestModule;
 import eu.cloudnetservice.ext.modules.rest.auth.util.KeySecurityUtil;
+import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import java.io.IOException;
@@ -37,8 +38,30 @@ public final class CloudNetJwtAuthProvider extends JwtAuthProvider {
   public CloudNetJwtAuthProvider() {
     super("CloudNet Rest",
       readOrGenerateJwtKeyPair(),
-      Duration.ofHours(12),
-      Duration.ofDays(3));
+      readAccessExpirationDuration(),
+      readRefreshExpirationDuration());
+  }
+
+  private static @NonNull Duration readAccessExpirationDuration() {
+    var configuration = InjectionLayer.ext().instance(RestConfiguration.class);
+    var duration = Duration.ofSeconds(configuration.authentication().jwtAccessSeconds());
+    verifyValidDuration(duration);
+
+    return duration;
+  }
+
+  private static @NonNull Duration readRefreshExpirationDuration() {
+    var configuration = InjectionLayer.ext().instance(RestConfiguration.class);
+    var duration = Duration.ofSeconds(configuration.authentication().jwtRefreshSeconds());
+    verifyValidDuration(duration);
+
+    return duration;
+  }
+
+  private static void verifyValidDuration(@NonNull Duration duration) {
+    if (duration.isZero() || duration.isNegative()) {
+      throw new IllegalArgumentException("Jwt token expiration duration must be positive.");
+    }
   }
 
   private static @NonNull KeyPair readOrGenerateJwtKeyPair() {

@@ -30,6 +30,7 @@ public record RestConfiguration(
   boolean disableNativeTransport,
   @NonNull CorsConfig cors,
   @NonNull HttpProxyMode proxyMode,
+  @NonNull AuthConfiguration authentication,
   @NonNull List<HostAndPort> httpListeners,
   @Nullable SslConfiguration sslConfiguration
 ) {
@@ -42,6 +43,7 @@ public record RestConfiguration(
       .allowCredentials(true)
       .build(),
     HttpProxyMode.DISABLED,
+    AuthConfiguration.DEFAULT_CONFIGURATION,
     List.of(new HostAndPort("127.0.0.1", 2812)),
     null);
 

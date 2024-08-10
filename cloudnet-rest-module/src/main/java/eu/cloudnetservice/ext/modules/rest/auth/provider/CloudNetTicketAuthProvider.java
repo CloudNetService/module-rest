@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.modules.rest.CloudNetRestModule;
 import eu.cloudnetservice.ext.modules.rest.auth.util.KeySecurityUtil;
+import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.rest.ticket.TicketAuthProvider;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,10 +34,19 @@ import lombok.NonNull;
 public final class CloudNetTicketAuthProvider extends TicketAuthProvider {
 
   private static final Path HMAC_KEY_PATH = Path.of("ticket_sign_key");
-  private static final Duration TICKET_EXPIRATION_DURATION = Duration.ofSeconds(15);
 
   public CloudNetTicketAuthProvider() {
-    super(TICKET_EXPIRATION_DURATION, readOrGenenerateMAC());
+    super(readTicketExpirationDuration(), readOrGenenerateMAC());
+  }
+
+  private static @NonNull Duration readTicketExpirationDuration() {
+    var configuration = InjectionLayer.ext().instance(RestConfiguration.class);
+    var duration = Duration.ofSeconds(configuration.authentication().ticketSeconds());
+    if (duration.isZero() || duration.isNegative()) {
+      throw new IllegalArgumentException("Ticket token expiration duration must be positive.");
+    }
+
+    return duration;
   }
 
   private static @NonNull Mac readOrGenenerateMAC() {

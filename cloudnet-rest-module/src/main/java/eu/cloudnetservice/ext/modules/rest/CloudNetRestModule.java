@@ -65,6 +65,7 @@ public final class CloudNetRestModule extends DriverModule {
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
   public void initHttpServer(@NonNull InjectionLayer<?> injectionLayer) {
     var restConfig = this.readConfig(RestConfiguration.class, () -> RestConfiguration.DEFAULT, DocumentFactory.json());
+    injectionLayer.install(BindingBuilder.create().bind(RestConfiguration.class).toInstance(restConfig));
 
     // construct the http server component
     var componentFactory = HttpComponentFactoryLoader.getFirstComponentFactory(HttpServer.class);
