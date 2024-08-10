@@ -158,14 +158,13 @@ public class JwtAuthProvider implements AuthProvider {
         var tokenId = token.getPayload().getId();
         var tokenType = token.getPayload().get("type", String.class);
 
-        // ensure that the user has one of the required scopes and if the jwt is scoped,
-        // that the jwt contains the correct scopes
+        // extract the scopes from the jwt and convert it to a set for the wrapped user
+        //noinspection unchecked
         var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.of());
-        // we will need the copy for the user & the response token
         var scopesCopy = Set.copyOf(existingScopes);
-        // wrap the user to ensure that only the scopes in the jwt are used
+
+        // we wrap the user to ensure that our checking later on always takes the scopes from the jwt into account
         var scopedUser = new ScopedRestUserDelegate(user, scopesCopy);
-        // ensure that we only pass if the user has one of the required scopes
         if (!scopedUser.hasOneScopeOf(requiredScopes)) {
           return AuthenticationResult.Constant.MISSING_REQUIRED_SCOPES;
         }

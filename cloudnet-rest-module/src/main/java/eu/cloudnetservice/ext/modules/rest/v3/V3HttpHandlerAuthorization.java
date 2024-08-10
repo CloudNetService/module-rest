@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedJwtBody;
-import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedWebSocketTicketBody;
+import eu.cloudnetservice.ext.modules.rest.dto.auth.ScopedTicketRequestBody;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -96,7 +96,7 @@ public final class V3HttpHandlerAuthorization {
     @NonNull @Authentication(
       providers = "jwt",
       scopes = {"cloudnet_rest:ticket_create", "cloudnet_rest:ticket_write"}) RestUser user,
-    @NonNull @Valid @RequestTypedBody ScopedWebSocketTicketBody body
+    @NonNull @Valid @RequestTypedBody ScopedTicketRequestBody body
   ) {
     var generationResult = this.ticketAuthProvider.generateAuthToken(this.userManagement, user, body.scopes());
     return switch (generationResult) {

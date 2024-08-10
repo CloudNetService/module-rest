@@ -67,5 +67,4 @@ public final class CloudNetTicketAuthProvider extends TicketAuthProvider {
       throw new IllegalStateException("Unable to initialize JWT signing key pair", exception);
     }
   }
-
 }
