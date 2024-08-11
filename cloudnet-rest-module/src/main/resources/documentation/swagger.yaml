@@ -76,7 +76,7 @@ paths:
         description: |
           The scopes in this body determine which requests can be made with this one JWT token.
           If a scoped JWT is created, then at most the set scopes can be used,
-          regardless of whether the user theoretically has further scopes.
+          regardless of whether the user theoretically has additional scopes.
           
           If no scopes are set, then all scopes of the user can be used with the JWT.
         content:
@@ -112,8 +112,7 @@ paths:
       summary: Generates a new short-lived ticket for auth.
       description: |
         Generates a new ticket which can be passed to endpoints which support ticket authentication.
-        The generated ticket is very short lived with an expiration time of 15 seconds
-        and the ticket can only be used once.
+        The generated ticket is short-lived and should be used immediately after generation.
       requestBody:
         required: true
         description: The scopes the ticket should contain.
@@ -128,6 +127,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthTicket'
+        '400':
+          $ref: '#/components/responses/Problem'
+          description: >-
+            If the provided body is not formed correctly
+        '401':
+          $ref: '#/components/responses/Problem'
+          description: If the provided authentication information is invalid
+        '403':
+          $ref: '#/components/responses/Problem'
+          description: If the request contains scopes and the user does not have all the requested scopes
   /auth/refresh:
     post:
       tags:
