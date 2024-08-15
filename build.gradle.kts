@@ -49,6 +49,7 @@ allprojects {
     "testImplementation"(rootProject.libs.testContainersJunit)
 
     "testRuntimeOnly"(rootProject.libs.junitEngine)
+    "testRuntimeOnly"(rootProject.libs.junitLauncher)
     "testImplementation"(rootProject.libs.junitApi)
     "testImplementation"(rootProject.libs.junitParams)
   }
