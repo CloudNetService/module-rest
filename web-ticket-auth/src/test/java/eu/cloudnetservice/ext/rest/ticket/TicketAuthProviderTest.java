@@ -105,6 +105,17 @@ public final class TicketAuthProviderTest {
   }
 
   @Test
+  void testQueryParameterEmptyMapReturnsProceed() {
+    var authMock = mockBaseAuthRequest(null);
+    var authProvider = new TicketAuthProvider(Duration.ofSeconds(1), hashFunction);
+
+    Mockito.when(authMock.context.request().queryParameters()).thenReturn(Map.of());
+
+    var result = authProvider.tryAuthenticate(authMock.context(), authMock.management(), Set.of());
+    Assertions.assertEquals(AuthenticationResult.Constant.PROCEED, result);
+  }
+
+  @Test
   void testQueryParameterMissingReturnsProceed() {
     var authMock = mockBaseAuthRequest(null);
     var authProvider = new TicketAuthProvider(Duration.ofSeconds(1), hashFunction);
