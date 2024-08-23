@@ -16,6 +16,8 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
+import dev.derklaro.aerogel.Element;
+import dev.derklaro.aerogel.Injector;
 import dev.derklaro.aerogel.binding.BindingBuilder;
 import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.driver.document.DocumentFactory;
@@ -131,9 +133,10 @@ public final class CloudNetRestModule extends DriverModule {
   }
 
   @ModuleTask(lifecycle = ModuleLifeCycle.STOPPED)
-  public void unregisterModule(@NonNull HttpServer httpServer) {
+  public void unregisterModule(@NonNull HttpServer httpServer, @NonNull InjectionLayer<Injector> layer) {
     try {
       httpServer.close();
+      layer.injector().removeBindings(holder -> holder.elementMatcher().test(Element.forType(HttpServer.class)));
     } catch (Exception exception) {
       LOGGER.error("Unable to close http server while disabling cloudnet rest module.", exception);
     }
