@@ -21,6 +21,10 @@ plugins {
   alias(libs.plugins.juppiter)
 }
 
+repositories {
+  maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+}
+
 dependencies {
   api(projects.webApi)
   moduleLibrary(libs.guava)
@@ -51,10 +55,6 @@ dependencies {
 
   compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC11-SNAPSHOT")
   compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC11-SNAPSHOT")
-}
-
-repositories {
-  maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
 tasks.withType<Jar> {
