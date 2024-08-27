@@ -229,7 +229,7 @@ public final class V3HttpHandlerModule {
     // download the module
     var target = this.moduleProvider.moduleDirectoryPath().resolve(entry.name() + ".jar");
     Unirest.get(entry.url())
-      .connectTimeout(5000)
+      .requestTimeout(5000)
       .thenConsume(rawResponse -> FileUtil.copy(rawResponse.getContent(), target));
 
     // validate the downloaded file

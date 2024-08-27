@@ -31,19 +31,22 @@ public final class SSLConfigurationDto implements Dto<SSLConfiguration> {
   private final Path certificatePath;
   @NotNull
   private final Path privateKeyPath;
+  private final String privateKeyPassword;
 
   public SSLConfigurationDto(
     boolean enabled,
     boolean clientAuth,
     Path trustCertificatePath,
     Path certificatePath,
-    Path privateKeyPath
+    Path privateKeyPath,
+    String privateKeyPassword
   ) {
     this.enabled = enabled;
     this.clientAuth = clientAuth;
     this.trustCertificatePath = trustCertificatePath;
     this.certificatePath = certificatePath;
     this.privateKeyPath = privateKeyPath;
+    this.privateKeyPassword = privateKeyPassword;
   }
 
   @Override
@@ -53,6 +56,7 @@ public final class SSLConfigurationDto implements Dto<SSLConfiguration> {
       this.clientAuth,
       this.trustCertificatePath,
       this.certificatePath,
-      this.privateKeyPath);
+      this.privateKeyPath,
+      this.privateKeyPassword);
   }
 }

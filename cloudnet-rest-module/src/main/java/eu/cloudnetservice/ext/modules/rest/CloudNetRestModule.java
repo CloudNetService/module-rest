@@ -16,14 +16,14 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
-import dev.derklaro.aerogel.Element;
-import dev.derklaro.aerogel.Injector;
+import dev.derklaro.aerogel.SpecifiedInjector;
 import dev.derklaro.aerogel.binding.BindingBuilder;
 import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
+import eu.cloudnetservice.driver.module.ModuleProvider;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
@@ -48,7 +48,9 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.factory.HttpComponentFactoryLoader;
 import eu.cloudnetservice.ext.rest.validation.ValidationHandlerMethodContextDecorator;
+import eu.cloudnetservice.node.TickLoop;
 import eu.cloudnetservice.node.command.CommandProvider;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -65,7 +67,7 @@ public final class CloudNetRestModule extends DriverModule {
   }
 
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
-  public void initHttpServer(@NonNull InjectionLayer<?> injectionLayer) {
+  public void initHttpServer(@Named("module") @NonNull InjectionLayer<?> injectionLayer) {
     var restConfig = this.readConfig(RestConfiguration.class, () -> RestConfiguration.DEFAULT, DocumentFactory.json());
 
     // construct the http server component
@@ -127,16 +129,29 @@ public final class CloudNetRestModule extends DriverModule {
   }
 
   @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
+  public void scheduleBridgeInitialization(
+    @NonNull TickLoop tickLoop,
+    @NonNull ModuleProvider moduleProvider,
+    @NonNull HttpServer server,
+    @NonNull @Named("module") InjectionLayer<SpecifiedInjector> moduleLayer
+  ) {
+    // we want to register the bridge handlers after all modules are started
+    tickLoop.runTask(() -> CloudNetBridgeInitializer.installBridgeHandler(moduleProvider, server, moduleLayer));
+  }
+
+  @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
   public void registerListener(@NonNull EventManager eventManager) {
     eventManager.registerListener(RestUserUpdateListener.class);
-    eventManager.registerListener(CloudNetBridgeInitializer.class);
   }
 
   @ModuleTask(lifecycle = ModuleLifeCycle.STOPPED)
-  public void unregisterModule(@NonNull HttpServer httpServer, @NonNull InjectionLayer<Injector> layer) {
+  public void unregisterModule(
+    @NonNull HttpServer httpServer,
+    @Named("module") InjectionLayer<SpecifiedInjector> layer
+  ) {
     try {
       httpServer.close();
-      layer.injector().removeBindings(holder -> holder.elementMatcher().test(Element.forType(HttpServer.class)));
+      layer.injector().removeConstructedBindings();
     } catch (Exception exception) {
       LOGGER.error("Unable to close http server while disabling cloudnet rest module.", exception);
     }

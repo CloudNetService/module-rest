@@ -22,7 +22,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import lombok.NonNull;
@@ -67,17 +66,10 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
 
   @Valid
   @NotNull
-  private final Collection<HostAndPortDto> httpListeners;
-
-  @Valid
-  @NotNull
   private final SSLConfigurationDto clientSslConfig;
   @Valid
   @NotNull
   private final SSLConfigurationDto serverSslConfig;
-  @Valid
-  @NotNull
-  private final SSLConfigurationDto webSslConfig;
 
   @NotNull
   private final Document properties;
@@ -97,10 +89,8 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
     String jvmCommand,
     String hostAddress,
     Map<String, String> ipAliases,
-    Collection<HostAndPortDto> httpListeners,
     SSLConfigurationDto clientSslConfig,
     SSLConfigurationDto serverSslConfig,
-    SSLConfigurationDto webSslConfig,
     Document properties
   ) {
     this.language = language;
@@ -117,10 +107,8 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
     this.jvmCommand = jvmCommand;
     this.hostAddress = hostAddress;
     this.ipAliases = ipAliases;
-    this.httpListeners = httpListeners;
     this.clientSslConfig = clientSslConfig;
     this.serverSslConfig = serverSslConfig;
-    this.webSslConfig = webSslConfig;
     this.properties = properties;
   }
 
@@ -141,10 +129,8 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
     config.javaCommand(this.jvmCommand);
     config.hostAddress(this.hostAddress);
     config.ipAliases(this.ipAliases);
-    config.httpListeners(Dto.toList(this.httpListeners));
     config.clientSSLConfig(this.clientSslConfig.toEntity());
     config.serverSSLConfig(this.serverSslConfig.toEntity());
-    config.webSSLConfig(this.webSslConfig.toEntity());
     config.properties(this.properties);
     return config;
   }

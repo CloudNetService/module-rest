@@ -49,8 +49,12 @@ dependencies {
   compileOnly(libs.logbackCore)
   compileOnly(libs.logbackClassic)
 
-  compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC10")
-  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC10")
+  compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC11-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC11-SNAPSHOT")
+}
+
+repositories {
+  maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
 tasks.withType<Jar> {
@@ -63,6 +67,11 @@ tasks.withType<ShadowJar> {
       it.moduleGroup.startsWith("eu.cloudnetservice")
     }
   }
+}
+
+tasks.withType<JavaCompile> {
+  sourceCompatibility = JavaVersion.VERSION_22.toString()
+  targetCompatibility = JavaVersion.VERSION_22.toString()
 }
 
 moduleJson {
