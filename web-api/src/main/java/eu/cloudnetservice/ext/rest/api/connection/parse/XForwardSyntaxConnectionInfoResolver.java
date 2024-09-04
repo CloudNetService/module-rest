@@ -17,12 +17,10 @@
 package eu.cloudnetservice.ext.rest.api.connection.parse;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
-import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import lombok.NonNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Extracts the connection information from the {@code X-FORWARDED} headers following these schemes:
@@ -51,19 +49,15 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
    * @throws NullPointerException if any of the given header names is null.
    */
   public XForwardSyntaxConnectionInfoResolver(
-    @Nullable String forwardedForHeaderName,
-    @Nullable String forwardedHostHeaderName,
-    @Nullable String forwardedPortHeaderName,
-    @Nullable String forwardedProtoHeaderName
+    @NonNull String forwardedForHeaderName,
+    @NonNull String forwardedHostHeaderName,
+    @NonNull String forwardedPortHeaderName,
+    @NonNull String forwardedProtoHeaderName
   ) {
     this.forwardedForHeaderName = forwardedForHeaderName;
     this.forwardedHostHeaderName = forwardedHostHeaderName;
     this.forwardedPortHeaderName = forwardedPortHeaderName;
     this.forwardedProtoHeaderName = forwardedProtoHeaderName;
-  }
-
-  private static @Nullable String headerValue(@NonNull HttpRequest request, @Nullable String headerName) {
-    return headerName == null ? null : request.headers().firstValue(headerName);
   }
 
   /**
@@ -76,7 +70,7 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
   ) {
     // extract information about the forwarded scheme (XFS)
     // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
-    var forwardedScheme = headerValue(context.request(), this.forwardedProtoHeaderName);
+    var forwardedScheme = context.request().headers().firstValue(this.forwardedProtoHeaderName);
     if (forwardedScheme != null) {
       var schemeToUse = forwardedScheme.split(",", 2)[0];
       baseInfo = baseInfo.withScheme(schemeToUse);
@@ -84,7 +78,7 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
 
     // extract information about the originating IP of the request (XFF)
     // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
-    var forwardedFor = headerValue(context.request(), this.forwardedForHeaderName);
+    var forwardedFor = context.request().headers().firstValue(this.forwardedForHeaderName);
     if (forwardedFor != null) {
       var defaultPort = baseInfo.clientAddress().port();
       var ipToUse = forwardedFor.split(",", 2)[0];
@@ -94,7 +88,7 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
 
     // extract information about the host information (XFH)
     // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
-    var forwardedHost = headerValue(context.request(), this.forwardedHostHeaderName);
+    var forwardedHost = context.request().headers().firstValue(this.forwardedHostHeaderName);
     if (forwardedHost != null) {
       var defaultPort = baseInfo.defaultPortForScheme();
       var hostToUse = forwardedHost.split(",", 2)[0];
@@ -107,7 +101,7 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
     // when looking into the documentation of cloud providers like AWS or Oracle
     // https://docs.oracle.com/en-us/iaas/Content/Balance/Reference/httpheaders.htm
     // https://docs.aws.amazon.com/elasticloadbalancing/latest/application/x-forwarded-headers.html#x-forwarded-port
-    var forwardedPort = headerValue(context.request(), this.forwardedPortHeaderName);
+    var forwardedPort = context.request().headers().firstValue(this.forwardedPortHeaderName);
     if (forwardedPort != null) {
       var portToUse = forwardedPort.split(",", 2)[0];
       var parsedPort = AddressParseUtil.parsePortNumber(this.forwardedPortHeaderName, portToUse);

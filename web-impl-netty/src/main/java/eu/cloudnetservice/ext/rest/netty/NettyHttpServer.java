@@ -151,7 +151,8 @@ final class NettyHttpServer implements HttpServer {
         this.sslContext,
         hostAndPort,
         this,
-        this.componentConfig.executorService()))
+        this.componentConfig.executorService(),
+        this.componentConfig.maxContentLength()))
 
       .childOption(ChannelOption.AUTO_READ, true)
       .childOption(ChannelOption.TCP_NODELAY, true)

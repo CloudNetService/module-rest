@@ -30,6 +30,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 public record ComponentConfig(
+  int maxContentLength,
   boolean disableNativeTransport,
   @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode haProxyMode,
@@ -38,6 +39,8 @@ public record ComponentConfig(
   @Nullable SslConfiguration sslConfiguration,
   @NonNull HttpConnectionInfoResolver connectionInfoResolver
 ) {
+
+  public static final int DEFAULT_MAX_CONTENT_LENGTH = 5 * 1024 * 1024;
 
   private static final HttpHandler DEFAULT_FALLBACK_HANDLER = new HttpHandler() {
     @Override
@@ -62,6 +65,7 @@ public record ComponentConfig(
 
   public static final class Builder {
 
+    private int maxContentLength = DEFAULT_MAX_CONTENT_LENGTH;
     private boolean disableNativeTransport;
     private HttpHandler fallbackHttpHandler = DEFAULT_FALLBACK_HANDLER;
     private ExecutorService executorService;
@@ -69,6 +73,13 @@ public record ComponentConfig(
     private HttpProxyMode haProxyMode = DISABLED;
     private CorsConfig.Builder corsConfigBuilder = CorsConfig.builder();
     private HttpConnectionInfoResolver connectionInfoResolver = EmptyConnectionInfoResolver.INSTANCE;
+
+    public @NonNull Builder maxContentLength(int maxContentLength) {
+      Preconditions.checkArgument(maxContentLength > 0, "maxContentLength must be greater than 0");
+
+      this.maxContentLength = maxContentLength;
+      return this;
+    }
 
     public @NonNull Builder disableNativeTransport(boolean disableNativeTransport) {
       this.disableNativeTransport = disableNativeTransport;
@@ -119,6 +130,7 @@ public record ComponentConfig(
       Preconditions.checkNotNull(this.executorService, "Missing executor service");
 
       return new ComponentConfig(
+        this.maxContentLength,
         this.disableNativeTransport,
         this.corsConfigBuilder.build(),
         this.haProxyMode,
