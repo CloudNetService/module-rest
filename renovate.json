@@ -29,6 +29,13 @@
         "io.netty:"
       ],
       "enabled": false
+    },
+    {
+      "description": "Disabled until cloudnet 4 stable release",
+      "matchPackagePrefixes": [
+        "eu.cloudnetservice:"
+      ],
+      "enabled": false
     }
   ],
   "vulnerabilityAlerts": {
