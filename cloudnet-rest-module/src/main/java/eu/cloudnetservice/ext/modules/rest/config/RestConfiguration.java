@@ -55,6 +55,7 @@ public record RestConfiguration(
     return ComponentConfig.builder()
       .corsConfig(this.cors)
       .haProxyMode(this.proxyMode)
+      .maxContentLength(this.maxContentLength)
       .sslConfiguration(this.sslConfiguration)
       .disableNativeTransport(this.disableNativeTransport)
       .connectionInfoResolver(this.httpConnectionInfoResolver())
