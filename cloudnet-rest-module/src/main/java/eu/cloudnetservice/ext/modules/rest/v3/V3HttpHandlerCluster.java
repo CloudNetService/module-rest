@@ -18,6 +18,7 @@ package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.modules.rest.dto.NetworkClusterNodeDto;
+import eu.cloudnetservice.ext.modules.rest.validation.TrueFalse;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
@@ -78,13 +79,14 @@ public final class V3HttpHandlerCluster {
     return this.nodeServerNotFound(node);
   }
 
+  @EnableValidation
   @RequestHandler(path = "/api/v3/cluster/{node}/drain", method = HttpMethod.PATCH)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_change_draining"})
   public @NonNull IntoResponse<?> handleNodeDrainRequest(
     @NonNull @RequestPathParam("node") String node,
-    @NonNull @FirstRequestQueryParam("draining") String drainingParam
+    @Valid @TrueFalse @NonNull @FirstRequestQueryParam("draining") String drainingParam
   ) {
     var server = this.nodeServerProvider.node(node);
     if (server == null) {
