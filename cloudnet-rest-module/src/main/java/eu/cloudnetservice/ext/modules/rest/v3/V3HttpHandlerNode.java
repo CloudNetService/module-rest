@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.modules.rest.v3;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.OutputStreamAppender;
+import eu.cloudnetservice.common.concurrent.TaskUtil;
 import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.CloudNetVersion;
 import eu.cloudnetservice.driver.module.ModuleProvider;
@@ -228,7 +229,7 @@ public final class V3HttpHandlerNode {
         if (this.user.hasScope("cloudnet_rest:node_send_commands")) {
           var commandLine = new String(bytes, StandardCharsets.UTF_8);
           var commandSource = new DriverCommandSource();
-          V3HttpHandlerNode.this.commandProvider.execute(commandSource, commandLine).getOrNull();
+          TaskUtil.getOrDefault(V3HttpHandlerNode.this.commandProvider.execute(commandSource, commandLine), null);
 
           for (var message : commandSource.messages()) {
             this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, message);

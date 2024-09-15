@@ -20,13 +20,13 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.modules.rest.CloudNetRestModule;
 import eu.cloudnetservice.ext.modules.rest.auth.util.KeySecurityUtil;
+import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
-import java.time.Duration;
 import lombok.NonNull;
 
 public final class CloudNetJwtAuthProvider extends JwtAuthProvider {
@@ -35,10 +35,12 @@ public final class CloudNetJwtAuthProvider extends JwtAuthProvider {
   private static final Path PUBLIC_KEY_PATH = Path.of("jwt_sign_key.pub");
 
   public CloudNetJwtAuthProvider() {
-    super("CloudNet Rest",
+    var authConfig = RestConfiguration.get().authConfig();
+    super(
+      "CloudNet Rest",
       readOrGenerateJwtKeyPair(),
-      Duration.ofHours(12),
-      Duration.ofDays(3));
+      authConfig.jwtTokenLifetime(),
+      authConfig.jwtRefreshTokenLifetime());
   }
 
   private static @NonNull KeyPair readOrGenerateJwtKeyPair() {

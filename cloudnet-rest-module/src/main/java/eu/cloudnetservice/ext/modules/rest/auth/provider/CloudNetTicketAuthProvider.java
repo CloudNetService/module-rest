@@ -20,23 +20,22 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.modules.rest.CloudNetRestModule;
 import eu.cloudnetservice.ext.modules.rest.auth.util.KeySecurityUtil;
+import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.rest.ticket.TicketAuthProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import javax.crypto.Mac;
 import lombok.NonNull;
 
 public final class CloudNetTicketAuthProvider extends TicketAuthProvider {
 
   private static final Path HMAC_KEY_PATH = Path.of("ticket_sign_key");
-  private static final Duration TICKET_EXPIRATION_DURATION = Duration.ofSeconds(15);
 
   public CloudNetTicketAuthProvider() {
-    super(TICKET_EXPIRATION_DURATION, readOrGenenerateMAC());
+    super(RestConfiguration.get().authConfig().ticketLifetime(), readOrGenenerateMAC());
   }
 
   private static @NonNull Mac readOrGenenerateMAC() {
