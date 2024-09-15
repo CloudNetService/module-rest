@@ -27,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import javax.crypto.Mac;
 import lombok.NonNull;
 
@@ -36,17 +35,7 @@ public final class CloudNetTicketAuthProvider extends TicketAuthProvider {
   private static final Path HMAC_KEY_PATH = Path.of("ticket_sign_key");
 
   public CloudNetTicketAuthProvider() {
-    super(readTicketExpirationDuration(), readOrGenenerateMAC());
-  }
-
-  private static @NonNull Duration readTicketExpirationDuration() {
-    var configuration = InjectionLayer.ext().instance(RestConfiguration.class);
-    var duration = Duration.ofSeconds(configuration.authentication().ticketSeconds());
-    if (duration.isZero() || duration.isNegative()) {
-      throw new IllegalArgumentException("Ticket token expiration duration must be positive.");
-    }
-
-    return duration;
+    super(RestConfiguration.get().authConfig().ticketLifetime(), readOrGenenerateMAC());
   }
 
   private static @NonNull Mac readOrGenenerateMAC() {

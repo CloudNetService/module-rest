@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
-import java.time.Duration;
 import lombok.NonNull;
 
 public final class CloudNetJwtAuthProvider extends JwtAuthProvider {
@@ -36,32 +35,12 @@ public final class CloudNetJwtAuthProvider extends JwtAuthProvider {
   private static final Path PUBLIC_KEY_PATH = Path.of("jwt_sign_key.pub");
 
   public CloudNetJwtAuthProvider() {
-    super("CloudNet Rest",
+    var authConfig = RestConfiguration.get().authConfig();
+    super(
+      "CloudNet Rest",
       readOrGenerateJwtKeyPair(),
-      readAccessExpirationDuration(),
-      readRefreshExpirationDuration());
-  }
-
-  private static @NonNull Duration readAccessExpirationDuration() {
-    var configuration = InjectionLayer.ext().instance(RestConfiguration.class);
-    var duration = Duration.ofSeconds(configuration.authentication().jwtAccessSeconds());
-    verifyValidDuration(duration);
-
-    return duration;
-  }
-
-  private static @NonNull Duration readRefreshExpirationDuration() {
-    var configuration = InjectionLayer.ext().instance(RestConfiguration.class);
-    var duration = Duration.ofSeconds(configuration.authentication().jwtRefreshSeconds());
-    verifyValidDuration(duration);
-
-    return duration;
-  }
-
-  private static void verifyValidDuration(@NonNull Duration duration) {
-    if (duration.isZero() || duration.isNegative()) {
-      throw new IllegalArgumentException("Jwt token expiration duration must be positive.");
-    }
+      authConfig.jwtTokenLifetime(),
+      authConfig.jwtRefreshTokenLifetime());
   }
 
   private static @NonNull KeyPair readOrGenerateJwtKeyPair() {

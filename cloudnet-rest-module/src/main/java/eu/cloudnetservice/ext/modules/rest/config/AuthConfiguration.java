@@ -17,12 +17,37 @@
 package eu.cloudnetservice.ext.modules.rest.config;
 
 import java.time.Duration;
+import org.jetbrains.annotations.NotNull;
 
-public record AuthConfiguration(long jwtAccessSeconds, long jwtRefreshSeconds, long ticketSeconds) {
+public record AuthConfiguration(
+  int jwtTokenLifetimeSeconds,
+  int jwtRefreshTokenLifetimeSeconds,
+  int ticketLifetimeSeconds
+) {
 
   public static final AuthConfiguration DEFAULT_CONFIGURATION = new AuthConfiguration(
-    Duration.ofHours(12).toSeconds(),
-    Duration.ofDays(3).toSeconds(),
-    15
+    12 * 60 * 60, // 12h
+    3 * 24 * 60 * 60, // 3d
+    15 // 15s
   );
+
+  public void validate() {
+    if (this.jwtTokenLifetimeSeconds <= 0
+      || this.jwtRefreshTokenLifetimeSeconds <= 0
+      || this.ticketLifetimeSeconds <= 0) {
+      throw new IllegalStateException("invalid authentication configuration: one lifetime is less or equal to zero");
+    }
+  }
+
+  public @NotNull Duration jwtTokenLifetime() {
+    return Duration.ofSeconds(this.jwtTokenLifetimeSeconds);
+  }
+
+  public @NotNull Duration jwtRefreshTokenLifetime() {
+    return Duration.ofSeconds(this.jwtRefreshTokenLifetimeSeconds);
+  }
+
+  public @NotNull Duration ticketLifetime() {
+    return Duration.ofSeconds(this.ticketLifetimeSeconds);
+  }
 }
