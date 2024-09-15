@@ -71,6 +71,19 @@ paths:
       summary: Authenticate a user at the rest endpoint
       description: >
         Authenticates a rest user and issues a JWT auth token for further requests.
+      requestBody:
+        required: false
+        description: |
+          The scopes in this body determine which requests can be made with this one JWT token.
+          If a scoped JWT is created, then at most the set scopes can be used,
+          regardless of whether the user theoretically has additional scopes.
+          
+          If no scopes are set, then all scopes of the user can be used with the JWT.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ScopesBody'
       responses:
         '200':
           description: >
@@ -89,6 +102,41 @@ paths:
         '401':
           $ref: '#/components/responses/Problem'
           description: If the provided authentication information is invalid
+        '403':
+          $ref: '#/components/responses/Problem'
+          description: If the request contains scopes and the user does not have all the requested scopes
+  /auth/ticket:
+    post:
+      tags:
+        - Session Management
+      summary: Generates a new short-lived ticket for auth.
+      description: |
+        Generates a new ticket which can be passed to endpoints which support ticket authentication.
+        The generated ticket is short-lived and should be used immediately after generation.
+      requestBody:
+        required: true
+        description: The scopes the ticket should contain.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopesBody'
+      responses:
+        '200':
+          description: The generation was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTicket'
+        '400':
+          $ref: '#/components/responses/Problem'
+          description: >-
+            If the provided body is not formed correctly
+        '401':
+          $ref: '#/components/responses/Problem'
+          description: If the provided authentication information is invalid
+        '403':
+          $ref: '#/components/responses/Problem'
+          description: If the request contains scopes and the user does not have all the requested scopes
   /auth/refresh:
     post:
       tags:
@@ -112,6 +160,9 @@ paths:
         '401':
           $ref: '#/components/responses/Problem'
           description: If the provided refresh token is invalid
+        '403':
+          $ref: '#/components/responses/Problem'
+          description: If the old jwt contained scopes that the user does not have anymore.
   /auth/verify:
     post:
       tags:
@@ -120,6 +171,16 @@ paths:
       description: |
         This route can be used to check if the given auth or refresh token is still 
         valid and how long
+      requestBody:
+        required: false
+        description: |
+          The scopes which can be accessed when using the provided jwt. If no scopes are provided only the
+          jwt is validated. Otherwise also the provided scopes are ensured to be available on the jwt and to the user.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ScopesBody'
       responses:
         '200':
           description: The auth token is still valid
@@ -589,6 +650,14 @@ paths:
     get:
       tags:
         - Node
+      parameters:
+        - name: ticket
+          in: query
+          required: false
+          description: | 
+            The ticket secret used for authentication purposes. Can be omitted if jwt authentication is used.
+          schema:
+            type: string
       summary: Live console
       description: >
         Upgrades the connection to a web socket connection and sends all new
@@ -1980,6 +2049,13 @@ paths:
         in: path
         required: true
         description: The name or unique id of the service
+        schema:
+          type: string
+      - name: ticket
+        in: query
+        required: false
+        description: |
+          The ticket secret used for authentication purposes. Can be omitted if jwt authentication is used
         schema:
           type: string
     get:
@@ -3561,6 +3637,29 @@ components:
             An absolute URI reference that identifies the specific occurrence of
             the problem. It may or may not yield further information if
             dereferenced.
+    ScopesBody:
+      type: object
+      properties:
+        scopes:
+          type: array
+          examples:
+            - [ cloudnet_rest:task_get, cloudnet_rest:task_read ]
+    AuthTicket:
+      type: object
+      properties:
+        creationTime:
+          type: number
+          examples:
+            - 1720965574000
+        secret:
+          type: string
+          examples:
+            - "MTcyMDgxMDM5OTI3NTowMThmZThkOS0zYTFmLTc5ODAtYWE5OC04ODg5YTA5MWY4OWU6Y2xvdWRuZXRfcmVzdDpzZXJ2aWNlX3JlYWQ=
+            .3ea1a7e8d81d1d28de86f378fe8c67e0c927d1bae56f915c6cb91733b62e15c5"
+        scopes:
+          type: array
+          examples:
+            - [ cloudnet_rest:node_read, cloudnet_rest:node_live_console ]
     NetworkClusterNode:
       type: object
       allOf:

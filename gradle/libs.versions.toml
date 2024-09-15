@@ -5,11 +5,12 @@ shadow = "8.3.0"
 juppiter = "0.4.0"
 spotless = "6.25.0"
 nexusPublish = "2.0.0"
-checkstyleTools = "10.17.0"
+checkstyleTools = "10.18.1"
 
 # testing
-junit = "5.10.3"
-mockito = "5.12.0"
+junit = "5.11.0"
+mockito = "5.13.0"
+junitLauncher = "1.11.0"
 testcontainers = "1.20.1"
 
 # compile time processing
@@ -18,12 +19,12 @@ lombok = "1.18.34"
 # runtime dependencies
 gson = "2.11.0"
 jjwt = "0.12.6"
-guava = "33.2.1-jre"
+guava = "33.3.0-jre"
 annotations = "24.1.0"
 
 # logging
-slf4j = "2.0.15"
-logback = "1.5.6"
+slf4j = "2.0.16"
+logback = "1.5.7"
 
 # validation
 expressly = "5.0.0"
@@ -59,6 +60,7 @@ jjwtGson = { group = "io.jsonwebtoken", name = "jjwt-gson", version.ref = "jjwt"
 junitApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junitParams = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
 junitEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+junitLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitLauncher" }
 
 # general testing
 mockito = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }

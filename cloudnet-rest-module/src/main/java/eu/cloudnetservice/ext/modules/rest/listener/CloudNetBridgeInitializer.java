@@ -16,30 +16,26 @@
 
 package eu.cloudnetservice.ext.modules.rest.listener;
 
-import eu.cloudnetservice.driver.event.EventListener;
+import dev.derklaro.aerogel.SpecifiedInjector;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleProvider;
 import eu.cloudnetservice.ext.modules.rest.v3.bridge.V3HttpHandlerPlayer;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
-import eu.cloudnetservice.node.event.CloudNetNodePostInitializationEvent;
-import jakarta.inject.Singleton;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Singleton
 public class CloudNetBridgeInitializer {
 
   private static final String BRIDGE_MODULE_NAME = "CloudNet-Bridge";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CloudNetBridgeInitializer.class);
 
-  @EventListener
-  public void handleNodePostInit(
-    @NonNull CloudNetNodePostInitializationEvent event,
+  public static void installBridgeHandler(
     @NonNull ModuleProvider moduleProvider,
-    @NonNull HttpServer server
+    @NonNull HttpServer server,
+    @NonNull InjectionLayer<SpecifiedInjector> moduleLayer
   ) {
     var bridgeModule = moduleProvider.module(BRIDGE_MODULE_NAME);
     if (bridgeModule == null || bridgeModule.moduleLifeCycle() != ModuleLifeCycle.STARTED) {
@@ -47,8 +43,7 @@ public class CloudNetBridgeInitializer {
       return;
     }
 
-    var layer = InjectionLayer.findLayerOf(this.getClass());
-    server.annotationParser().parseAndRegister(layer.instance(V3HttpHandlerPlayer.class));
+    server.annotationParser().parseAndRegister(moduleLayer.instance(V3HttpHandlerPlayer.class));
     LOGGER.debug("Successfully registered V3HttpHandlerPlayer as {} is present", BRIDGE_MODULE_NAME);
   }
 }

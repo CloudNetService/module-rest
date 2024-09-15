@@ -17,4 +17,6 @@
 
 dependencies {
   compileOnlyApi(projects.webApi)
+
+  testImplementation(projects.webApi)
 }

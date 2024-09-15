@@ -21,7 +21,7 @@ import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelInitializer;
 import io.netty5.handler.codec.http.HttpContentCompressor;
-import io.netty5.handler.codec.http.HttpObjectAggregator;
+import io.netty5.handler.codec.http.HttpContentDecompressor;
 import io.netty5.handler.codec.http.HttpRequestDecoder;
 import io.netty5.handler.codec.http.HttpResponseEncoder;
 import io.netty5.handler.ssl.SslContext;
@@ -85,10 +85,11 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
     ch.pipeline()
       .addLast("read-timeout-handler", new NettyIdleStateHandler(30))
       .addLast("http-request-decoder", new HttpRequestDecoder())
-      .addLast("http-object-aggregator", new HttpObjectAggregator<>(Short.MAX_VALUE))
+      .addLast("http-request-decompressor", new HttpContentDecompressor())
       .addLast("http-response-encoder", new HttpResponseEncoder())
       .addLast("http-response-compressor", new HttpContentCompressor())
-      .addLast("http-chunk-handler", new ChunkedWriteHandler())
+      .addLast("http-response-chunk-writer", new ChunkedWriteHandler())
+      .addLast("http-object-aggregator", new NettyOversizedClosingHttpAggregator<>(Short.MAX_VALUE))
       .addLast("http-server-handler", new NettyHttpServerHandler(
         this.nettyHttpServer,
         this.listenerAddress,

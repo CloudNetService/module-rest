@@ -104,7 +104,7 @@ public class TicketAuthProvider implements AuthProvider {
   ) {
     // check if there is at least one query parameter "ticket"
     var ticketQueryParameters = context.request().queryParameters().get(QUERY_PARAMETER_NAME);
-    if (ticketQueryParameters.isEmpty()) {
+    if (ticketQueryParameters == null || ticketQueryParameters.isEmpty()) {
       return AuthenticationResult.Constant.PROCEED;
     }
 
