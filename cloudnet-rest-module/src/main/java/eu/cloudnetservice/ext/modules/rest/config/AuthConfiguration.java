@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.config;
 
 import java.time.Duration;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 public record AuthConfiguration(
   int jwtTokenLifetimeSeconds,
@@ -39,15 +39,15 @@ public record AuthConfiguration(
     }
   }
 
-  public @NotNull Duration jwtTokenLifetime() {
+  public @NonNull Duration jwtTokenLifetime() {
     return Duration.ofSeconds(this.jwtTokenLifetimeSeconds);
   }
 
-  public @NotNull Duration jwtRefreshTokenLifetime() {
+  public @NonNull Duration jwtRefreshTokenLifetime() {
     return Duration.ofSeconds(this.jwtRefreshTokenLifetimeSeconds);
   }
 
-  public @NotNull Duration ticketLifetime() {
+  public @NonNull Duration ticketLifetime() {
     return Duration.ofSeconds(this.ticketLifetimeSeconds);
   }
 }

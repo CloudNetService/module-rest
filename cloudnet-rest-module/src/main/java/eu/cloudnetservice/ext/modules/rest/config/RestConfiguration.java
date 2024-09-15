@@ -25,7 +25,6 @@ import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import java.util.List;
 import java.util.concurrent.Executors;
 import lombok.NonNull;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record RestConfiguration(
@@ -51,12 +50,12 @@ public record RestConfiguration(
 
   private static RestConfiguration instance;
 
-  public static @NotNull RestConfiguration get() {
+  public static @NonNull RestConfiguration get() {
     Preconditions.checkState(instance != null, "rest configuration has not been initialized");
     return instance;
   }
 
-  public static void setInstance(@NotNull RestConfiguration config) {
+  public static void setInstance(@NonNull RestConfiguration config) {
     instance = config;
   }
 
