@@ -16,12 +16,6 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
-import cloud.commandframework.annotations.Regex;
-import cloud.commandframework.annotations.parsers.Parser;
-import cloud.commandframework.context.CommandContext;
 import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.ext.modules.rest.auth.DefaultRestUser;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
@@ -36,13 +30,18 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.NonNull;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.annotations.Regex;
+import org.incendo.cloud.annotations.parser.Parser;
+import org.incendo.cloud.context.CommandInput;
 
 @Singleton
-@CommandPermission("cloudnet.command.rest")
+@Permission("cloudnet.command.rest")
 @Description("module-rest-command-description")
 public final class RestCommand {
 
@@ -56,8 +55,8 @@ public final class RestCommand {
   }
 
   @Parser
-  public @NonNull DefaultRestUser defaultRestUserParser(@NonNull CommandContext<?> $, @NonNull Queue<String> input) {
-    var username = input.remove();
+  public @NonNull DefaultRestUser defaultRestUserParser(@NonNull CommandInput input) {
+    var username = input.readString();
     var user = this.restUserManagement.restUserByUsername(username);
     if (user == null) {
       throw new ArgumentNotAvailableException(I18n.trans("module-rest-user-not-found", username));
@@ -74,8 +73,8 @@ public final class RestCommand {
   }
 
   @Parser(name = "restUserScope")
-  public @NonNull String restUserScopeParser(@NonNull CommandContext<?> $, @NonNull Queue<String> input) {
-    var scope = input.remove();
+  public @NonNull String restUserScopeParser(@NonNull CommandInput input) {
+    var scope = input.readString();
     if (RestUser.SCOPE_NAMING_PATTERN.matcher(scope).matches()) {
       return scope;
     }
@@ -86,7 +85,7 @@ public final class RestCommand {
       scope));
   }
 
-  @CommandMethod("rest user create <username> <password>")
+  @Command("rest user create <username> <password>")
   public void createRestUser(
     @NonNull CommandSource source,
     @Argument("username") @Regex(DefaultRestUser.USER_NAMING_REGEX) @NonNull String username,
@@ -109,13 +108,13 @@ public final class RestCommand {
     source.sendMessage(I18n.trans("module-rest-user-create-successful", username));
   }
 
-  @CommandMethod("rest user delete <username>")
+  @Command("rest user delete <username>")
   public void deleteRestUser(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
     this.restUserManagement.deleteRestUser(restUser.id());
     source.sendMessage(I18n.trans("module-rest-user-delete-successful", restUser.username()));
   }
 
-  @CommandMethod("rest user <username>")
+  @Command("rest user <username>")
   public void displayUser(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
     source.sendMessage("RestUser " + restUser.id() + ":" + restUser.username());
     source.sendMessage("Scopes:");
@@ -124,7 +123,7 @@ public final class RestCommand {
     }
   }
 
-  @CommandMethod("rest user <username> add scope <scope>")
+  @Command("rest user <username> add scope <scope>")
   public void addScope(
     @NonNull CommandSource source,
     @Argument("username") @NonNull DefaultRestUser restUser,
@@ -134,13 +133,13 @@ public final class RestCommand {
     source.sendMessage(I18n.trans("module-rest-user-add-scope-successful", restUser.username(), scope));
   }
 
-  @CommandMethod("rest user <username> clear scopes")
+  @Command("rest user <username> clear scopes")
   public void clearScopes(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
     this.updateRestUser(source, restUser, builder -> builder.scopes(Set.of()));
     source.sendMessage(I18n.trans("module-rest-user-clear-scopes-successful", restUser.username()));
   }
 
-  @CommandMethod("rest user <username> remove scope <scope>")
+  @Command("rest user <username> remove scope <scope>")
   public void removeScope(
     @NonNull CommandSource source,
     @Argument("username") @NonNull DefaultRestUser restUser,
@@ -150,7 +149,7 @@ public final class RestCommand {
     source.sendMessage(I18n.trans("module-rest-user-remove-scope-successful", restUser.username(), scope));
   }
 
-  @CommandMethod("rest user <username> set password <password>")
+  @Command("rest user <username> set password <password>")
   public void setPassword(
     @NonNull CommandSource source,
     @Argument("username") @NonNull DefaultRestUser restUser,
@@ -160,7 +159,7 @@ public final class RestCommand {
     source.sendMessage(I18n.trans("module-rest-user-password-changed", restUser.username()));
   }
 
-  @CommandMethod("rest user <username> verifyPassword <password>")
+  @Command("rest user <username> verifyPassword <password>")
   public void verifyPassword(
     @NonNull CommandSource source,
     @Argument("username") @NonNull DefaultRestUser restUser,
