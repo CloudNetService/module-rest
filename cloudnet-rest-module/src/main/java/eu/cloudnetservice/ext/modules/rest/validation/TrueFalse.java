@@ -45,5 +45,4 @@ public @interface TrueFalse {
   Class<?>[] groups() default {};
 
   Class<? extends Payload>[] payload() default {};
-
 }
