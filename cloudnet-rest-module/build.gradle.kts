@@ -57,6 +57,31 @@ dependencies {
   compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC11-SNAPSHOT")
 }
 
+tasks.withType<Test> {
+  jvmArgs("--enable-preview")
+}
+
+tasks.withType<JavaCompile> {
+  sourceCompatibility = JavaVersion.VERSION_22.toString()
+  targetCompatibility = JavaVersion.VERSION_22.toString()
+
+  options.compilerArgs.add("-Xlint:-preview")
+  options.compilerArgs.add("--enable-preview")
+}
+
+tasks.withType<Javadoc> {
+  val options = options as? StandardJavadocDocletOptions ?: return@withType
+  options.addStringOption("-release", "22")
+  options.addBooleanOption("-enable-preview", true)
+}
+
+extensions.configure<JavaPluginExtension> {
+  toolchain {
+    vendor = JvmVendorSpec.AZUL
+    languageVersion = JavaLanguageVersion.of(22)
+  }
+}
+
 tasks.withType<Jar> {
   archiveFileName.set("cloudnet-rest.jar")
 }

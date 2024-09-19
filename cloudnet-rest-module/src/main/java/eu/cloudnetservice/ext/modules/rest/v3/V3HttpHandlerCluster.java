@@ -18,9 +18,11 @@ package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.modules.rest.dto.NetworkClusterNodeDto;
+import eu.cloudnetservice.ext.modules.rest.validation.TrueFalse;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
+import eu.cloudnetservice.ext.rest.api.annotation.FirstRequestQueryParam;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestPathParam;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
@@ -75,6 +77,24 @@ public final class V3HttpHandlerCluster {
     }
 
     return this.nodeServerNotFound(node);
+  }
+
+  @EnableValidation
+  @RequestHandler(path = "/api/v3/cluster/{node}/drain", method = HttpMethod.PATCH)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_change_draining"})
+  public @NonNull IntoResponse<?> handleNodeDrainRequest(
+    @NonNull @RequestPathParam("node") String node,
+    @Valid @TrueFalse @NonNull @FirstRequestQueryParam("draining") String drainingParam
+  ) {
+    var server = this.nodeServerProvider.node(node);
+    if (server == null) {
+      return this.nodeServerNotFound(node);
+    }
+
+    server.drain(Boolean.parseBoolean(drainingParam));
+    return HttpResponseCode.ACCEPTED;
   }
 
   @RequestHandler(path = "/api/v3/cluster/{node}/command", method = HttpMethod.POST)

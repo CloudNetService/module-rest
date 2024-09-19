@@ -596,7 +596,43 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
+  /cluster/{uniqueId}/drain:
+    parameters:
+      - name: uniqueId
+        in: path
+        required: true
+        description: The id of the target node
+        schema:
+          type: string
+      - name: draining
+        in: query
+        required: true
+        description: The boolean value whether to drain the node or not.
+        schema:
+          type: boolean
+    patch:
+      tags:
+        - Cluster
+      summary: Sets the draining state of the target node.
+      description: |
+        Sets the draining state of the target node.
 
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_write`
+
+         - `cloudnet_rest:cluster_node_change_draining`
+      operationId: clusterCommand
+      responses:
+        '202':
+          description: The draining state was set successfully
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
   /node:
     get:
       security:

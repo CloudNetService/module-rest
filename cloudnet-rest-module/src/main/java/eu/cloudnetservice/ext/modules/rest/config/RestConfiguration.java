@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.config;
 
+import com.google.common.base.Preconditions;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
@@ -31,8 +32,9 @@ import org.jetbrains.annotations.Nullable;
 public record RestConfiguration(
   int maxContentLength,
   boolean disableNativeTransport,
-  @NonNull CorsConfig cors,
+  @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode proxyMode,
+  @NonNull AuthConfiguration authConfig,
   @NonNull List<HostAndPort> httpListeners,
   @NonNull List<ConnectionInfoResolverConfiguration> connectionInfoResolver,
   @Nullable SslConfiguration sslConfiguration
@@ -47,13 +49,29 @@ public record RestConfiguration(
       .allowCredentials(true)
       .build(),
     HttpProxyMode.DISABLED,
+    AuthConfiguration.DEFAULT_CONFIGURATION,
     List.of(new HostAndPort("127.0.0.1", 2812)),
     List.of(),
     null);
 
+  private static RestConfiguration instance;
+
+  public static @NonNull RestConfiguration get() {
+    Preconditions.checkState(instance != null, "rest configuration has not been initialized");
+    return instance;
+  }
+
+  public static void setInstance(@NonNull RestConfiguration config) {
+    instance = config;
+  }
+
+  public void validate() {
+    this.authConfig.validate();
+  }
+
   public @NonNull ComponentConfig toComponentConfig() {
     return ComponentConfig.builder()
-      .corsConfig(this.cors)
+      .corsConfig(this.corsConfig)
       .haProxyMode(this.proxyMode)
       .maxContentLength(this.maxContentLength)
       .sslConfiguration(this.sslConfiguration)
