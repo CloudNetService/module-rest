@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.modules.rest.config;
 import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.document.Document;
+import eu.cloudnetservice.driver.document.property.DefaultedDocPropertyHolder;
 import eu.cloudnetservice.driver.document.property.DocProperty;
 import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.parse.ForwardedSyntaxConnectionInfoResolver;
@@ -28,9 +29,9 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 public record ConnectionInfoResolverConfiguration(
-  @NonNull String name,
+  @NonNull String type,
   @NonNull Document properties
-) {
+) implements DefaultedDocPropertyHolder {
 
   private static final DocProperty<String> FORWARDED_HEADER = DocProperty
     .property("forwardedHeader", String.class);
@@ -45,20 +46,25 @@ public record ConnectionInfoResolverConfiguration(
     .withDefault(HttpHeaders.X_FORWARDED_PROTO);
 
   public @Nullable HttpConnectionInfoResolver toResolver() {
-    return switch (StringUtil.toLower(this.name)) {
+    return switch (StringUtil.toLower(this.type)) {
       case "host" -> HostHeaderConnectionInfoResolver.INSTANCE;
       case "forwarded" -> {
-        var forwarded = this.properties.readPropertyOrDefault(FORWARDED_HEADER, HttpHeaders.FORWARDED);
+        var forwarded = this.readPropertyOrDefault(FORWARDED_HEADER, HttpHeaders.FORWARDED);
         yield new ForwardedSyntaxConnectionInfoResolver(forwarded);
       }
       case "x-forwarded" -> {
-        var forwardedFor = this.properties.readPropertyOrDefault(FORWARDED_HEADER, HttpHeaders.X_FORWARDED_FOR);
-        var forwardedHost = this.properties.readProperty(X_FORWARDED_HOST_HEADER);
-        var forwardedPort = this.properties.readProperty(X_FORWARDED_PORT_HEADER);
-        var forwardedProto = this.properties.readProperty(X_FORWARDED_PROTO_HEADER);
+        var forwardedFor = this.readPropertyOrDefault(FORWARDED_HEADER, HttpHeaders.X_FORWARDED_FOR);
+        var forwardedHost = this.readProperty(X_FORWARDED_HOST_HEADER);
+        var forwardedPort = this.readProperty(X_FORWARDED_PORT_HEADER);
+        var forwardedProto = this.readProperty(X_FORWARDED_PROTO_HEADER);
         yield new XForwardSyntaxConnectionInfoResolver(forwardedFor, forwardedHost, forwardedPort, forwardedProto);
       }
       default -> null;
     };
+  }
+
+  @Override
+  public @NonNull Document propertyHolder() {
+    return this.properties;
   }
 }
