@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.config;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 public record RestConfiguration(
   int maxContentLength,
+  int requestDispatchThreadLimit,
   boolean disableNativeTransport,
   @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode proxyMode,
@@ -42,6 +44,7 @@ public record RestConfiguration(
 
   public static final RestConfiguration DEFAULT = new RestConfiguration(
     ComponentConfig.DEFAULT_MAX_CONTENT_LENGTH,
+    50,
     false,
     CorsConfig.builder()
       .addAllowedOrigin("*")
@@ -70,6 +73,11 @@ public record RestConfiguration(
   }
 
   public @NonNull ComponentConfig toComponentConfig() {
+    var requestDispatchThreadFactory = new ThreadFactoryBuilder()
+      .setDaemon(true)
+      .setPriority(Thread.NORM_PRIORITY)
+      .setNameFormat("rest-request-dispatcher-%d")
+      .build();
     return ComponentConfig.builder()
       .corsConfig(this.corsConfig)
       .haProxyMode(this.proxyMode)
@@ -77,7 +85,7 @@ public record RestConfiguration(
       .sslConfiguration(this.sslConfiguration)
       .disableNativeTransport(this.disableNativeTransport)
       .connectionInfoResolver(this.httpConnectionInfoResolver())
-      .executorService(Executors.newVirtualThreadPerTaskExecutor())
+      .executorService(Executors.newFixedThreadPool(this.requestDispatchThreadLimit, requestDispatchThreadFactory))
       .build();
   }
 
