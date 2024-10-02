@@ -1,17 +1,17 @@
 [versions]
 
 # plugins
-shadow = "8.3.2"
+shadow = "8.3.3"
 juppiter = "0.4.0"
 spotless = "6.25.0"
 nexusPublish = "2.0.0"
-checkstyleTools = "10.18.1"
+checkstyleTools = "10.18.2"
 
 # testing
-junit = "5.11.0"
+junit = "5.11.1"
 mockito = "5.13.0"
-junitLauncher = "1.11.0"
-testcontainers = "1.20.1"
+junitLauncher = "1.11.1"
+testcontainers = "1.20.2"
 
 # compile time processing
 lombok = "1.18.34"
@@ -19,7 +19,7 @@ lombok = "1.18.34"
 # runtime dependencies
 gson = "2.11.0"
 jjwt = "0.12.6"
-guava = "33.3.0-jre"
+guava = "33.3.1-jre"
 annotations = "24.1.0"
 
 # logging
