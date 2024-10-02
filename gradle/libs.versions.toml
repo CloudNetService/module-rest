@@ -9,7 +9,7 @@ checkstyleTools = "10.18.2"
 
 # testing
 junit = "5.11.1"
-mockito = "5.13.0"
+mockito = "5.14.1"
 junitLauncher = "1.11.1"
 testcontainers = "1.20.2"
 
