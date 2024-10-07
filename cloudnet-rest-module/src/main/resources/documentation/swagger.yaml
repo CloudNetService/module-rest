@@ -1,10 +1,6 @@
 openapi: 3.1.0
 info:
-  description: >
-    CloudNet's rest API version 3 is the next generation in CloudNet's rest
-    history.
-    
-    
+  description: |
     In order to access rest API v3 you will have to authenticate yourself using basic auth.
     To create a basic auth user use the `rest user create <id> <password>` command on your cloudnet node.
     After authenticating with basic auth on `/auth` you will get a bearer jwt access token that must be used for further
@@ -69,7 +65,7 @@ paths:
       tags:
         - Session Management
       summary: Authenticate a user at the rest endpoint
-      description: >
+      description: |
         Authenticates a rest user and issues a JWT auth token for further requests.
       requestBody:
         required: false
@@ -86,7 +82,7 @@ paths:
                 - $ref: '#/components/schemas/ScopesBody'
       responses:
         '200':
-          description: >
+          description: |
             Successfully authenticated the user at the rest endpoint. The
             resulting json object will contain the bearer token for further
             requests to the endpoint.
@@ -96,7 +92,7 @@ paths:
                 $ref: '#/components/schemas/JwtToken'
         '400':
           $ref: '#/components/responses/Problem'
-          description: >-
+          description: |
             If the auth header is missing or not containing basic auth
             credentials
         '401':
@@ -129,7 +125,7 @@ paths:
                 $ref: '#/components/schemas/AuthTicket'
         '400':
           $ref: '#/components/responses/Problem'
-          description: >-
+          description: |
             If the provided body is not formed correctly
         '401':
           $ref: '#/components/responses/Problem'
@@ -142,7 +138,7 @@ paths:
       tags:
         - Session Management
       summary: Refreshes an auth token
-      description: >
+      description: |
         Invalidates the current auth and refresh token that is used when calling
         the route and issues new ones to be used afterwards.
       responses:
@@ -154,7 +150,7 @@ paths:
           description: The auth token was refreshed successfully.
         '400':
           $ref: '#/components/responses/Problem'
-          description: >-
+          description: |
             In case an access token instead of a refresh token is used to call
             the route
         '401':
@@ -227,7 +223,6 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_read`
-        
           - `cloudnet_rest:user_get_all`
       operationId: user
       responses:
@@ -254,11 +249,10 @@ paths:
       description: |
         Creates a new rest user based on the supplied request body. While creating a user is possible without
         the `global:admin` scope, it is not possible to add scopes to the user.
-        
+
         One of the following scopes is needed to execute the request:
-                 - `cloudnet_rest:user_write`
-        
-                 - `cloudnet_rest:user_create`
+          - `cloudnet_rest:user_write`
+          - `cloudnet_rest:user_create`
       operationId: user
       requestBody:
         required: true
@@ -303,7 +297,6 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_read`
-        
           - `cloudnet_rest:user_get`
       responses:
         '200':
@@ -326,14 +319,13 @@ paths:
       summary: Updates an existing rest user.
       description: |
         Updates the given rest user. At least one of the properties have to be updated.
-        
+
         If the user is not updating himself the scope `global:admin` is needed too.
-        Furthermore if scopes are to be modified using the request `global:admin` is needed, regardless whether the user
-        is editing himself or somebody else.
-        
+        Furthermore if scopes are to be modified using the request `global:admin` is needed,
+        regardless whether the user is editing himself or somebody else.
+
         The following scope is required:
           - `cloudnet_rest:user_write`
-        
           - `cloudnet_rest:user_update`
       responses:
         '200':
@@ -383,7 +375,6 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_write`
-        
           - `cloudnet_rest:user_delete`
       responses:
         '204':
@@ -405,8 +396,8 @@ paths:
         available will be `false` and the `nodeInfoSnapshot` will be null.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_read`
-         - `cloudnet_rest:cluster_node_list`
+          - `cloudnet_rest:cluster_read`
+          - `cloudnet_rest:cluster_node_list`
       operationId: cluster
       responses:
         '200':
@@ -442,9 +433,8 @@ paths:
         does not mean that the node tries to connect to the updated node.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_write`
-        
-         - `cloudnet_rest:cluster_node_update`
+          - `cloudnet_rest:cluster_write` 
+          - `cloudnet_rest:cluster_node_update`
       operationId: clusterUpdate
       responses:
         '204':
@@ -474,8 +464,8 @@ paths:
         connect to the newly registered node.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_write`
-         - `cloudnet_rest:cluster_node_create`
+          - `cloudnet_rest:cluster_write`
+          - `cloudnet_rest:cluster_node_create`
       operationId: clusterCreate
       responses:
         '201':
@@ -502,9 +492,8 @@ paths:
         Get the detailed information about the node that is associated with the given node id.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_read`
-        
-         - `cloudnet_rest:cluster_node_get`
+          - `cloudnet_rest:cluster_read`
+          - `cloudnet_rest:cluster_node_get`
       operationId: clusterInfo
       responses:
         '200':
@@ -531,9 +520,8 @@ paths:
         gets disconnected.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_write`
-        
-         - `cloudnet_rest:cluster_node_delete`
+          - `cloudnet_rest:cluster_write`
+          - `cloudnet_rest:cluster_node_delete`
       operationId: clusterDelete
       responses:
         '204':
@@ -573,9 +561,8 @@ paths:
         Sends a command to a specific node in the cluster.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_write`
-        
-         - `cloudnet_rest:cluster_node_command`
+          - `cloudnet_rest:cluster_write`
+          - `cloudnet_rest:cluster_node_command`
       operationId: clusterCommand
       responses:
         '200':
@@ -618,9 +605,8 @@ paths:
         Sets the draining state of the target node.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:cluster_write`
-
-         - `cloudnet_rest:cluster_node_change_draining`
+          - `cloudnet_rest:cluster_write`
+          - `cloudnet_rest:cluster_node_change_draining`
       operationId: clusterCommand
       responses:
         '202':
@@ -644,9 +630,8 @@ paths:
         Information about the node the rest listener belongs to.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:node_read`
-
-         - `cloudnet_rest:node_info`
+          - `cloudnet_rest:node_read`
+          - `cloudnet_rest:node_info`
       operationId: generalInfo
       responses:
         '200':
@@ -671,9 +656,8 @@ paths:
         Tests whether the rest api is available and is responding
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:node_read`
-
-         - `cloudnet_rest:node_ping`
+          - `cloudnet_rest:node_read`
+          - `cloudnet_rest:node_ping`
       operationId: nodePing
       responses:
         '204':
@@ -690,22 +674,18 @@ paths:
         - name: ticket
           in: query
           required: false
-          description: | 
+          description: |
             The ticket secret used for authentication purposes. Can be omitted if jwt authentication is used.
           schema:
             type: string
       summary: Live console
-      description: >
+      description: |
         Upgrades the connection to a web socket connection and sends all new
-        command
-
-        lines received to the connection.
-
+        command lines received to the connection.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:node_read`
-
-         - `cloudnet_rest:node_live_console`
+          - `cloudnet_rest:node_read`
+          - `cloudnet_rest:node_live_console`
       responses:
         '101':
           description: Switching the protocol to a websocket
@@ -731,9 +711,8 @@ paths:
       summary: Reloads the node the request is sent to
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:node_write`
-
-         - `cloudnet_rest:node_reload`
+          - `cloudnet_rest:node_write`
+          - `cloudnet_rest:node_reload`
       responses:
         '204':
           description: "The node was reloaded."
@@ -750,9 +729,8 @@ paths:
       summary: Get the current configuration file of the node the request is sent to
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:node_read`
-
-         - `cloudnet_rest:node_config_get`
+          - `cloudnet_rest:node_read`
+          - `cloudnet_rest:node_config_get`
       responses:
         '200':
           content:
@@ -778,9 +756,8 @@ paths:
         routes to add/remove a node.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:node_write`
-
-         - `cloudnet_rest:node_config_update`
+          - `cloudnet_rest:node_write`
+          - `cloudnet_rest:node_config_update`
       responses:
         '204':
           description: The node configuration was updated.
@@ -797,9 +774,8 @@ paths:
       summary: Lists all database names
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_read`
-
-         - `cloudnet_rest:database_list`
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_list`
       operationId: listDatabase
       responses:
         '200':
@@ -845,9 +821,8 @@ paths:
       summary: Creates a new document in a database
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_write`
-
-         - `cloudnet_rest:database_insert`
+          - `cloudnet_rest:database_write`
+          - `cloudnet_rest:database_insert`
       responses:
         '201':
           description: The document was inserted into the database
@@ -868,9 +843,8 @@ paths:
       summary: Deletes a document from the database
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_write`
-
-         - `cloudnet_rest:database_delete`
+          - `cloudnet_rest:database_write`
+          - `cloudnet_rest:database_delete`
       responses:
         '204':
           description: Successful deletion of the entry from the database.
@@ -895,9 +869,8 @@ paths:
         Clears the content of the given database.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_write`
-
-         - `cloudnet_rest:database_clear`
+          - `cloudnet_rest:database_write`
+          - `cloudnet_rest:database_clear`
       responses:
         '204':
           description: The database was cleared.
@@ -920,9 +893,8 @@ paths:
       summary: Get all keys in a database
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_read`
-
-         - `cloudnet_rest:database_keys`
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_keys`
       responses:
         '200':
           description: OK
@@ -951,9 +923,8 @@ paths:
       summary: Get the document count of a database
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_read`
-
-         - `cloudnet_rest:database_count`
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_count`
       responses:
         '200':
           description: OK
@@ -989,9 +960,8 @@ paths:
       summary: Checks if the provided database contains a specific key
       description: |
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_read`
-
-         - `cloudnet_rest:database_contains`
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_contains`
       responses:
         '200':
           description: OK
@@ -1025,13 +995,11 @@ paths:
             type: string
       summary: Get a specific document from a database
       description: |
-        Get the document out of the provided database by using the provided
-        key.
+        Get the document out of the provided database by using the provided key.
 
         One of the following scopes is needed to execute the request:
-         - `cloudnet_rest:database_read`
-
-         - `cloudnet_rest:database_get`
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_get`
       responses:
         '200':
           description: OK
@@ -1069,14 +1037,12 @@ paths:
           schema:
             type: string
       summary: Get a specific document from a database
-      description: >
+      description: |
         Gets all documents out of the provided database, by using the provided
         search filter.
 
-
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:database_read`
-
           - `cloudnet_rest:database_find`
       responses:
         '200':
@@ -1109,11 +1075,11 @@ paths:
         - Groups
       summary: Creates a new group or updates an already existing one
       description: |
-        Creates a new group if there is no other group known with the provided name. If there is a group known then the known group is updated using the provided data.
-        
+        Creates a new group if there is no other group known with the provided name.
+        If there is a group known then the known group is updated using the provided data.
+
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:group_write`
-
           - `cloudnet_rest:group_create`
       responses:
         '201':
@@ -1131,7 +1097,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:group_read`
-
           - `cloudnet_rest:group_list`
       responses:
         '200':
@@ -1165,7 +1130,6 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:group_read`
-
           - `cloudnet_rest:group_get`
       responses:
         '200':
@@ -1190,7 +1154,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:group_write`
-
           - `cloudnet_rest:group_delete`
       responses:
         '204':
@@ -1210,7 +1173,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_read`
-        
           - `cloudnet_bridge:player_registered_count`
       responses:
         '200':
@@ -1236,7 +1198,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_read`
-
           - `cloudnet_bridge:player_online_count`
       responses:
         '200':
@@ -1305,7 +1266,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_read`
-        
           - `cloudnet_bridge:player_get_bulk`
       responses:
         '200':
@@ -1351,7 +1311,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_read`
-
           - `cloudnet_bridge:player_get`
       responses:
         '200':
@@ -1387,7 +1346,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_read`
-
           - `cloudnet_bridge:player_exists`
       responses:
         '204':
@@ -1427,10 +1385,9 @@ paths:
       summary: Connect a specific player to a specific service.
       description: |
         Connects the given player to the specified service.
-        
+
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_write`
-        
           - `cloudnet_bridge:player_connect_service`
       responses:
         '204':
@@ -1509,7 +1466,6 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_write`
-        
           - `cloudnet_bridge:player_connect_group_task`
       responses:
         '204':
@@ -1542,10 +1498,9 @@ paths:
       summary: Connects a given player to a fallback service.
       description: |
         Connects the given player to any fallback service that matches the requirements.
-        
+
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_write`
-        
           - `cloudnet_bridge:player_connect_fallback`
       responses:
         '204':
@@ -1580,10 +1535,9 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_write`
-        
           - `cloudnet_bridge:player_disconnect`
       requestBody:
-        description: The body containg the message to kick the player with.
+        description: The body containing the message to kick the player with.
         required: true
         content:
           application/json:
@@ -1625,10 +1579,9 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_write`
-        
           - `cloudnet_bridge:player_send_chat`
       requestBody:
-        description: The body containg the chat message to send to the player.
+        description: The body containing the chat message to send to the player.
         required: true
         content:
           application/json:
@@ -1664,7 +1617,9 @@ paths:
       - name: redirectToServer
         in: query
         required: false
-        description: Whether to redirect the command to the downstream service if the command is not available on the proxy.
+        description: |
+          Whether to redirect the command to the downstream service
+          if the command is not available on the proxy.
         schema:
           type: boolean
     post:
@@ -1676,10 +1631,11 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_bridge:player_write`
-        
           - `cloudnet_bridge:player_send_command`
       requestBody:
-        description: The body containg the command to execute for the player. Its mandatory to **not** have a slash at the start of the command.
+        description: |
+          The body containing the command to execute for the player. Its mandatory to
+          **not** have a slash at the start of the command.
         required: true
         content:
           application/json:
@@ -1712,11 +1668,11 @@ paths:
         - Tasks
       summary: Creates a new task or updates an already existing one
       description: |
-        Creates a new task if there is no other task known with the provided name. If there is a task known then the known task is updated using the provided data.
+        Creates a new task if there is no other task known with the provided name.
+        If there is a task known then the known task is updated using the provided data.
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:task_write`
-
           - `cloudnet_rest:task_create`
       responses:
         '204':
@@ -1734,7 +1690,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:task_read`
-
           - `cloudnet_rest:task_list`
       responses:
         '200':
@@ -1770,7 +1725,6 @@ paths:
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:task_read`
-
           - `cloudnet_rest:task_get`
       responses:
         '200':
@@ -1795,7 +1749,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:task_write`
-
           - `cloudnet_rest:task_delete`
       responses:
         '204':
@@ -1817,7 +1770,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_read`
-
           - `cloudnet_rest:service_list`
       responses:
         '200':
@@ -1859,7 +1811,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_read`
-
           - `cloudnet_rest:service_get`
       responses:
         '200':
@@ -1882,7 +1833,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-        
           - `cloudnet_rest:service_delete`
       responses:
         '204':
@@ -1916,9 +1866,8 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-        
           - `cloudnet_rest:service_delete_files`
-        
+
         WARNING: This will delete files of static services too.
       responses:
         '204':
@@ -1962,7 +1911,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_lifecycle`
       responses:
         '204':
@@ -1998,7 +1946,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_include`
       responses:
         '204':
@@ -2032,7 +1979,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_deploy_resources`
       responses:
         '204':
@@ -2059,7 +2005,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_read`
-
           - `cloudnet_rest:service_log_lines`
       responses:
         '200':
@@ -2098,16 +2043,12 @@ paths:
       tags:
         - Services
       summary: Live console of a service
-      description: >
+      description: |
         Upgrades the connection to a web socket connection and sends all new log
-        lines
-
-        received to the connection.
-
+        lines received to the connection.
 
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_read`
-
           - `cloudnet_rest:service_live_log`
       responses:
         '101':
@@ -2135,12 +2076,10 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_create_service_config`
       requestBody:
         required: true
-        description: >
-          The service configuration to create the new service from
+        description: The service configuration to create the new service from
         content:
           application/json:
             schema:
@@ -2174,11 +2113,10 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_create_task`
       requestBody:
         required: true
-        description: >
+        description: |
           The service task to create the new service from
         content:
           application/json:
@@ -2205,7 +2143,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_create_task_name`
       requestBody:
         required: true
@@ -2241,8 +2178,7 @@ paths:
       - name: flush
         in: query
         required: false
-        description: >
-          Whether the template should be included to the service after adding it
+        description: Whether the template should be included to the service after adding it
         schema:
           type: boolean
           default: false
@@ -2260,7 +2196,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_add_template`
       responses:
         '204':
@@ -2285,8 +2220,7 @@ paths:
       - name: flush
         in: query
         required: false
-        description: >
-          Whether the deployment should be included to the service after adding it
+        description: Whether the deployment should be included to the service after adding it
         schema:
           type: boolean
           default: false
@@ -2304,7 +2238,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_add_deployment`
       responses:
         '204':
@@ -2329,8 +2262,7 @@ paths:
       - name: flush
         in: query
         required: false
-        description: >
-          Whether the inclusion should be included to the service after adding it
+        description: Whether the inclusion should be included to the service after adding it
         schema:
           type: boolean
           default: false
@@ -2348,7 +2280,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_add_inclusion`
       responses:
         '204':
@@ -2389,7 +2320,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
-
           - `cloudnet_rest:service_send_commands`
       responses:
         '204':
@@ -2409,7 +2339,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_storage_read`
-
           - `cloudnet_rest:template_storage_list`
       responses:
         '200':
@@ -2444,7 +2373,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_storage_read`
-
           - `cloudnet_rest:template_storage_template_list`
       responses:
         '200':
@@ -2490,7 +2418,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_read`
-
           - `cloudnet_rest:template_file_download`
       responses:
         '200':
@@ -2544,7 +2471,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_read`
-
           - `cloudnet_rest:template_file_info`
       responses:
         '200':
@@ -2589,7 +2515,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_read`
-
           - `cloudnet_rest:template_file_exists`
       responses:
         '200':
@@ -2633,7 +2558,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_read`
-
           - `cloudnet_rest:template_download`
       responses:
         '200':
@@ -2681,7 +2605,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_read`
-
           - `cloudnet_rest:template_exists`
       responses:
         '200':
@@ -2737,7 +2660,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_read`
-
           - `cloudnet_rest:template_directory_list`
       responses:
         '200':
@@ -2781,7 +2703,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_create`
       responses:
         '204':
@@ -2826,7 +2747,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_deploy`
       responses:
         '204':
@@ -2874,7 +2794,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_file_create`
       responses:
         '204':
@@ -2924,7 +2843,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_file_append`
       responses:
         '204':
@@ -2967,7 +2885,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_directory_create`
       responses:
         '204':
@@ -3005,7 +2922,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_delete`
       responses:
         '204':
@@ -3048,7 +2964,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:template_write`
-
           - `cloudnet_rest:template_delete_file`
       responses:
         '204':
@@ -3070,7 +2985,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_version_read`
-
           - `cloudnet_rest:service_version_list`
       responses:
         '200':
@@ -3101,7 +3015,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_version_write`
-
           - `cloudnet_rest:service_version_register`
       responses:
         '204':
@@ -3120,7 +3033,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_version_read`
-
           - `cloudnet_rest:service_version_list_environments`
       responses:
         '200':
@@ -3144,7 +3056,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_version_write`
-
           - `cloudnet_rest:service_version_environment`
       requestBody:
         required: true
@@ -3176,7 +3087,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_version_read`
-
           - `cloudnet_rest:service_version_get`
       responses:
         '200':
@@ -3197,11 +3107,9 @@ paths:
         - name: url
           in: query
           required: false
-          description: >
+          description: |
             The url to load the service types from. If no url is provided the
-            service types
-
-            loaded are the fallback types compiled into the jar file.
+            fallback service types from the current node installation are used.
           schema:
             type: string
       tags:
@@ -3210,7 +3118,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_version_write`
-
           - `cloudnet_rest:service_version_load`
       responses:
         '204':
@@ -3237,6 +3144,10 @@ paths:
       tags:
         - Service Versions
       summary: Installs a service version to a static service or a service template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_write`
+          - `cloudnet_rest:service_version_install`
       requestBody:
         content:
           application/json:
@@ -3286,7 +3197,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
-
           - `cloudnet_rest:module_reload_all`
       responses:
         '204':
@@ -3303,7 +3213,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_read`
-
           - `cloudnet_rest:module_list_loaded`
       responses:
         '200':
@@ -3328,7 +3237,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_read`
-        
           - `cloudnet_rest:module_list_present`
       responses:
         '200':
@@ -3340,7 +3248,7 @@ paths:
                     type: array
                     items:
                       type: string
-          description: Successfull listing of all module jar names
+          description: Successful listing of all module jar names
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -3353,7 +3261,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_read`
-
           - `cloudnet_rest:module_list_available`
       responses:
         '200':
@@ -3384,7 +3291,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_read`
-
           - `cloudnet_rest:module_get`
       responses:
         '200':
@@ -3423,7 +3329,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
-
           - `cloudnet_rest:module_lifecycle`
       responses:
         '204':
@@ -3450,7 +3355,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
-
           - `cloudnet_rest:module_uninstall`
       responses:
         '204':
@@ -3482,9 +3386,8 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
-
           - `cloudnet_rest:module_load`
-        
+
         If the module already is available and just needs to be loaded do not provide the jar in the request body.
       responses:
         '201':
@@ -3529,7 +3432,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
-
           - `cloudnet_rest:module_install`
       responses:
         '201':
@@ -3558,13 +3460,12 @@ paths:
         - Modules
       summary: Get the configuration file of a module
       description: |
-        Gets the configuration file of a module. Some module might not support this feature. In that case the response code is 400.
-        
+        Gets the configuration file of a module. Some modules might not support
+        this feature. In that case the response code is 400.
+
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_read`
-
           - `cloudnet_rest:module_config_get`
-        
           - `cloudnet_rest:module_config_get_sensitive` for reading module configs with sensitive data.
       responses:
         '200':
@@ -3601,7 +3502,6 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
-
           - `cloudnet_rest:module_config_update`
       responses:
         '204':
@@ -3625,14 +3525,14 @@ components:
       scheme: basic
   responses:
     Problem:
-      description: The action couldn't be exececuted
+      description: The action couldn't be executed
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
   schemas:
     Problem:
-      description: >-
+      description: |
         An object describing a problem as specific in RFC 9457. Note that this
         object can contain any number of additional properties depending on the
         called route and error cause.
@@ -3645,7 +3545,7 @@ components:
           default: about:blank
         title:
           type: string
-          description: >-
+          description: |
             A short summary of the problem type. Written in English and readable
             for engineers (usually not suited for non technical stakeholders and
             not localized).
@@ -3654,7 +3554,7 @@ components:
         status:
           type: integer
           format: int32
-          description: >-
+          description: |
             The HTTP status code generated by the origin server for this
             occurrence of the problem.
           minimum: 400
@@ -3663,13 +3563,13 @@ components:
             - 503
         detail:
           type: string
-          description: >-
+          description: |
             A human-readable explanation specific to this occurrence of the
             problem
         instance:
           type: string
           format: uri
-          description: >-
+          description: |
             An absolute URI reference that identifies the specific occurrence of
             the problem. It may or may not yield further information if
             dereferenced.
