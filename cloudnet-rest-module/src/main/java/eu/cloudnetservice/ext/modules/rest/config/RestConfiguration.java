@@ -26,7 +26,9 @@ import eu.cloudnetservice.ext.rest.api.connection.EmptyConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,14 +80,22 @@ public record RestConfiguration(
       .setPriority(Thread.NORM_PRIORITY)
       .setNameFormat("rest-request-dispatcher-%d")
       .build();
+    var requestDispatchExecutor = new ThreadPoolExecutor(
+      1,
+      this.requestDispatchThreadLimit,
+      30L,
+      TimeUnit.SECONDS,
+      new LinkedBlockingQueue<>(),
+      requestDispatchThreadFactory);
+
     return ComponentConfig.builder()
       .corsConfig(this.corsConfig)
       .haProxyMode(this.proxyMode)
       .maxContentLength(this.maxContentLength)
       .sslConfiguration(this.sslConfiguration)
+      .executorService(requestDispatchExecutor)
       .disableNativeTransport(this.disableNativeTransport)
       .connectionInfoResolver(this.httpConnectionInfoResolver())
-      .executorService(Executors.newFixedThreadPool(this.requestDispatchThreadLimit, requestDispatchThreadFactory))
       .build();
   }
 
