@@ -127,9 +127,10 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
   protected void messageReceived(@NonNull ChannelHandlerContext ctx, @NonNull HttpRequest msg) {
     // validate that the request was actually decoded before processing
     if (msg.decoderResult().isFailure()) {
-      ctx.channel().close();
+      NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
     }
+
     // handle the message inside the executor from here on
     Send<Buffer> buffer;
     if (msg instanceof FullHttpRequest request) {
@@ -159,9 +160,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     // to the lack of path information which is the base of our internal handling)
     var uri = URI.create(httpRequest.uri());
     if (uri.isOpaque()) {
-      channel
-        .writeAndFlush(new DefaultHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST))
-        .addListener(channel, ChannelFutureListeners.CLOSE);
+      NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
       return;
     }
 

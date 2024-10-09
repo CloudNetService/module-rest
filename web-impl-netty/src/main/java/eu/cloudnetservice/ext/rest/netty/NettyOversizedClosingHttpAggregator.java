@@ -17,10 +17,7 @@
 package eu.cloudnetservice.ext.rest.netty;
 
 import io.netty5.channel.ChannelHandlerContext;
-import io.netty5.handler.codec.http.DefaultFullHttpResponse;
 import io.netty5.handler.codec.http.HttpContent;
-import io.netty5.handler.codec.http.HttpHeaderNames;
-import io.netty5.handler.codec.http.HttpHeaderValues;
 import io.netty5.handler.codec.http.HttpObjectAggregator;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
@@ -34,18 +31,11 @@ final class NettyOversizedClosingHttpAggregator<C extends HttpContent<C>> extend
 
   @Override
   protected void handleOversizedMessage(@NonNull ChannelHandlerContext ctx, @NonNull Object tooLarge) throws Exception {
-    if (tooLarge instanceof HttpRequest httpRequest) {
+    if (tooLarge instanceof HttpRequest) {
       // always the close the connection when the client sent a too large request body as this leaves
       // the decoder and this aggregator in a mismatched state which would cause the following request
       // with a too large body to hand forever
-      var response = new DefaultFullHttpResponse(
-        httpRequest.protocolVersion(),
-        HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE,
-        ctx.bufferAllocator().allocate(0));
-      response.headers()
-        .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE)
-        .set(HttpHeaderNames.CONTENT_LENGTH, HttpHeaderValues.ZERO);
-      ctx.writeAndFlush(response).addListener(ignored -> ctx.close());
+      NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
     } else {
       // not a request, use the default handling
       super.handleOversizedMessage(ctx, tooLarge);
