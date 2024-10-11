@@ -62,8 +62,8 @@ tasks.withType<Test> {
 }
 
 tasks.withType<JavaCompile> {
-  sourceCompatibility = JavaVersion.VERSION_22.toString()
-  targetCompatibility = JavaVersion.VERSION_22.toString()
+  sourceCompatibility = JavaVersion.VERSION_23.toString()
+  targetCompatibility = JavaVersion.VERSION_23.toString()
 
   options.compilerArgs.add("-Xlint:-preview")
   options.compilerArgs.add("--enable-preview")
@@ -71,14 +71,14 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Javadoc> {
   val options = options as? StandardJavadocDocletOptions ?: return@withType
-  options.addStringOption("-release", "22")
+  options.addStringOption("-release", "23")
   options.addBooleanOption("-enable-preview", true)
 }
 
 extensions.configure<JavaPluginExtension> {
   toolchain {
     vendor = JvmVendorSpec.AZUL
-    languageVersion = JavaLanguageVersion.of(22)
+    languageVersion = JavaLanguageVersion.of(23)
   }
 }
 
@@ -95,8 +95,8 @@ tasks.withType<ShadowJar> {
 }
 
 tasks.withType<JavaCompile> {
-  sourceCompatibility = JavaVersion.VERSION_22.toString()
-  targetCompatibility = JavaVersion.VERSION_22.toString()
+  sourceCompatibility = JavaVersion.VERSION_23.toString()
+  targetCompatibility = JavaVersion.VERSION_23.toString()
 }
 
 moduleJson {
