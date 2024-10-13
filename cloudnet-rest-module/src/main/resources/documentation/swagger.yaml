@@ -50,9 +50,13 @@ tags:
   - name: Services
     description: Management of the services which are running in the cluster
   - name: Template Storage
-    description: Management of the templates
+    description: Management of the template storages
   - name: Templates
-    description: Management of the templates
+    description: |
+      Management of the templates
+      
+      WARNING: This api is still subject to change as there are known
+      issues regarding inconsistency between different template storage providers.
   - name: Service Versions
     description: Management of service versions
   - name: Modules
