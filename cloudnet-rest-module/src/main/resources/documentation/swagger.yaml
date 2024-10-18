@@ -54,7 +54,6 @@ tags:
   - name: Templates
     description: |
       Management of the templates
-      
       WARNING: This api is still subject to change as there are known
       issues regarding inconsistency between different template storage providers.
   - name: Service Versions
