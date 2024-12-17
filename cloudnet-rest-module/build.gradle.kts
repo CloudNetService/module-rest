@@ -53,8 +53,8 @@ dependencies {
   compileOnly(libs.logbackCore)
   compileOnly(libs.logbackClassic)
 
-  compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC11-SNAPSHOT")
-  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC11-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC12-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC12-SNAPSHOT")
 }
 
 tasks.withType<Test> {
@@ -102,7 +102,7 @@ tasks.withType<JavaCompile> {
 moduleJson {
   main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
   name = "CloudNet-Rest"
-  version = "1.0"
+  version = "0.1.0"
   author = "CloudNetService"
   description = "The REST module offers a CRUD REST API for cloudnet"
   runtimeModule = true
