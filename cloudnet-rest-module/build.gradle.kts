@@ -102,7 +102,7 @@ tasks.withType<JavaCompile> {
 moduleJson {
   main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
   name = "CloudNet-Rest"
-  version = "0.1.0"
+  version = project.version.toString()
   author = "CloudNetService"
   description = "The REST module offers a CRUD REST API for cloudnet"
   runtimeModule = true
