@@ -1,35 +1,35 @@
 [versions]
 
 # plugins
-shadow = "8.3.3"
+shadow = "8.3.5"
 juppiter = "0.4.0"
 spotless = "6.25.0"
 nexusPublish = "2.0.0"
 checkstyleTools = "10.21.0"
 
 # testing
-junit = "5.11.2"
-mockito = "5.14.1"
-junitLauncher = "1.11.2"
-testcontainers = "1.20.2"
+junit = "5.11.4"
+mockito = "5.14.2"
+junitLauncher = "1.11.4"
+testcontainers = "1.20.4"
 
 # compile time processing
-lombok = "1.18.34"
+lombok = "1.18.36"
 
 # runtime dependencies
 gson = "2.11.0"
 jjwt = "0.12.6"
 guava = "33.4.0-jre"
-annotations = "26.0.0"
+annotations = "26.0.1"
 
 # logging
 slf4j = "2.0.16"
-logback = "1.5.10"
+logback = "1.5.14"
 
 # validation
 expressly = "5.0.0"
 jakartaValidationApi = "3.1.0"
-hibernateValidator = "8.0.1.Final"
+hibernateValidator = "8.0.2.Final"
 
 # netty stuff
 netty = "5.0.0.Alpha5"
