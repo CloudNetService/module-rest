@@ -20,11 +20,13 @@ import ch.qos.logback.classic.Level;
 import eu.cloudnetservice.ext.modules.rest.validation.LogLevel;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
-public class LogLevelValidator implements ConstraintValidator<LogLevel, String> {
+public final class LogLevelValidator implements ConstraintValidator<LogLevel, String> {
 
   @Override
-  public boolean isValid(String value, ConstraintValidatorContext context) {
+  public boolean isValid(@Nullable String value, @NonNull ConstraintValidatorContext context) {
     return value == null || Level.toLevel(value, null) != null;
   }
 }

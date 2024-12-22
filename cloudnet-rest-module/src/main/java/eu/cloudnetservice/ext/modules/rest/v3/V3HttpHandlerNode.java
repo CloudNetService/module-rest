@@ -178,7 +178,7 @@ public final class V3HttpHandlerNode {
   @RequestHandler(path = "/api/v3/node/liveConsole")
   public @NonNull IntoResponse<?> handleLiveConsoleRequest(
     @NonNull HttpContext context,
-    @Optional @Valid @LogLevel @FirstRequestQueryParam("threshold") String threshold,
+    @FirstRequestQueryParam("threshold") @Optional @Valid @LogLevel String threshold,
     @Authentication(
       providers = {"ticket", "jwt"},
       scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"}) @NonNull RestUser restUser
