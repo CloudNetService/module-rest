@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.OutputStreamAppender;
@@ -28,6 +29,7 @@ import eu.cloudnetservice.driver.network.NetworkClient;
 import eu.cloudnetservice.driver.provider.GroupConfigurationProvider;
 import eu.cloudnetservice.driver.provider.ServiceTaskProvider;
 import eu.cloudnetservice.ext.modules.rest.dto.JsonConfigurationDto;
+import eu.cloudnetservice.ext.modules.rest.validation.LogLevel;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -63,6 +65,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 @Singleton
+@EnableValidation
 public final class V3HttpHandlerNode {
 
   private final Logger logger;
@@ -175,16 +178,23 @@ public final class V3HttpHandlerNode {
   @RequestHandler(path = "/api/v3/node/liveConsole")
   public @NonNull IntoResponse<?> handleLiveConsoleRequest(
     @NonNull HttpContext context,
+    @FirstRequestQueryParam("threshold") @Optional @Valid @LogLevel String threshold,
     @Authentication(
       providers = {"ticket", "jwt"},
       scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"}) @NonNull RestUser restUser
   ) {
     if (this.logger instanceof ch.qos.logback.classic.Logger logbackLogger) {
       context.upgrade().thenAccept(channel -> {
-        var webSocketAppender = new WebSocketLogAppender(logbackLogger, restUser, channel);
+        var webSocketAppender = new WebSocketLogAppender(
+          logbackLogger,
+          Level.toLevel(threshold, null),
+          restUser,
+          channel);
         var appender = logbackLogger.getAppender("Rolling");
-        if (appender instanceof OutputStreamAppender<ILoggingEvent> consoleAppender) {
-          webSocketAppender.setEncoder(consoleAppender.getEncoder());
+        if (appender instanceof OutputStreamAppender<ILoggingEvent> fileAppender) {
+          webSocketAppender.setContext(fileAppender.getContext());
+          webSocketAppender.setEncoder(fileAppender.getEncoder());
+          webSocketAppender.start();
         }
 
         logbackLogger.addAppender(webSocketAppender);
@@ -210,15 +220,18 @@ public final class V3HttpHandlerNode {
   protected class WebSocketLogAppender extends ConsoleAppender<ILoggingEvent> implements WebSocketListener {
 
     protected final ch.qos.logback.classic.Logger logger;
+    protected final Level thresholdLevel;
     protected final RestUser user;
     protected final WebSocketChannel channel;
 
     public WebSocketLogAppender(
       @NonNull ch.qos.logback.classic.Logger logger,
+      @Nullable Level thresholdLevel,
       @NonNull RestUser user,
       @NonNull WebSocketChannel channel
     ) {
       this.logger = logger;
+      this.thresholdLevel = thresholdLevel;
       this.user = user;
       this.channel = channel;
     }
@@ -249,7 +262,9 @@ public final class V3HttpHandlerNode {
 
     @Override
     protected void append(@NonNull ILoggingEvent event) {
-      this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, this.encoder.encode(event));
+      if (this.thresholdLevel == null || event.getLevel().isGreaterOrEqual(this.thresholdLevel)) {
+        this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, this.encoder.encode(event));
+      }
     }
   }
 }

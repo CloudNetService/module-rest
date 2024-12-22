@@ -102,7 +102,10 @@ public record ScopedRestUserDelegate(@NonNull RestUser delegate, @NonNull Set<St
    */
   @Override
   public boolean hasScope(@NonNull String scope) {
-    return (this.scopes.isEmpty() || this.scopes.contains(scope)) && this.delegate.hasScope(scope);
+    var hasScopedAccess = this.scopes.isEmpty()
+      || this.scopes.contains(scope)
+      || this.scopes.contains(RestUser.GLOBAL_ADMIN_SCOPE);
+    return hasScopedAccess && this.delegate.hasScope(scope);
   }
 
   /**
