@@ -49,6 +49,7 @@ import eu.cloudnetservice.node.command.CommandProvider;
 import eu.cloudnetservice.node.command.source.DriverCommandSource;
 import eu.cloudnetservice.node.config.Configuration;
 import eu.cloudnetservice.node.config.JsonConfiguration;
+import eu.cloudnetservice.node.log.QueuedConsoleLogAppender;
 import eu.cloudnetservice.node.service.CloudServiceManager;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -74,6 +75,7 @@ public final class V3HttpHandlerNode {
   private final NodeServerProvider nodeServerProvider;
   private final CloudServiceManager cloudServiceManager;
   private final ServiceTaskProvider serviceTaskProvider;
+  private final QueuedConsoleLogAppender consoleLogAppender;
   private final GroupConfigurationProvider groupConfigurationProvider;
 
   @Inject
@@ -87,6 +89,7 @@ public final class V3HttpHandlerNode {
     @NonNull NodeServerProvider nodeServerProvider,
     @NonNull CloudServiceManager cloudServiceManager,
     @NonNull ServiceTaskProvider serviceTaskProvider,
+    @NonNull QueuedConsoleLogAppender consoleLogAppender,
     @NonNull GroupConfigurationProvider groupConfigurationProvider
   ) {
     this.logger = logger;
@@ -98,6 +101,7 @@ public final class V3HttpHandlerNode {
     this.nodeServerProvider = nodeServerProvider;
     this.cloudServiceManager = cloudServiceManager;
     this.serviceTaskProvider = serviceTaskProvider;
+    this.consoleLogAppender = consoleLogAppender;
     this.groupConfigurationProvider = groupConfigurationProvider;
   }
 
@@ -199,6 +203,12 @@ public final class V3HttpHandlerNode {
     }
 
     return HttpResponseCode.SWITCHING_PROTOCOLS;
+  }
+
+  @RequestHandler(path = "/api/v3/node/logLines")
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_log_lines"})
+  public @NonNull IntoResponse<?> handleLogLinesRequest() {
+    return JsonResponse.builder().body(Map.of("lines", this.consoleLogAppender.formattedCachedLogLines()));
   }
 
   private void reloadConfig() {

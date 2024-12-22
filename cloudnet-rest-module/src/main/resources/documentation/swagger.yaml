@@ -696,6 +696,30 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
+  /node/logLines:
+    get:
+      tags:
+        - Node
+      summary: Get the cached log lines of the node the request is sent to
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:node_read`
+          - `cloudnet_rest:node_log_lines`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  lines:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
   /node/reload:
     parameters:
       - name: type
