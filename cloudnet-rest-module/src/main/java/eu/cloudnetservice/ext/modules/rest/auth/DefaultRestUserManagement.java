@@ -26,7 +26,7 @@ import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.node.database.LocalDatabase;
-import eu.cloudnetservice.node.database.NodeDatabaseProvider;
+import eu.cloudnetservice.node.impl.database.NodeDatabaseProvider;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.UUID;

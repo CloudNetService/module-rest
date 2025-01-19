@@ -17,7 +17,6 @@
 package eu.cloudnetservice.ext.modules.rest.config;
 
 import com.google.common.net.HttpHeaders;
-import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.document.property.DefaultedDocPropertyHolder;
 import eu.cloudnetservice.driver.document.property.DocProperty;
@@ -25,6 +24,7 @@ import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.parse.ForwardedSyntaxConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.parse.HostHeaderConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.parse.XForwardSyntaxConnectionInfoResolver;
+import eu.cloudnetservice.utils.base.StringUtil;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 

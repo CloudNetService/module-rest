@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.validation.validator;
 
 import eu.cloudnetservice.ext.modules.rest.validation.HostAddress;
-import eu.cloudnetservice.node.util.NetworkUtil;
+import eu.cloudnetservice.node.impl.util.NetworkUtil;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.NonNull;

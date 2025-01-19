@@ -16,8 +16,6 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
-import eu.cloudnetservice.common.io.FileUtil;
-import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.module.ModuleProvider;
 import eu.cloudnetservice.driver.module.ModuleWrapper;
@@ -35,9 +33,11 @@ import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.updater.util.ChecksumUtil;
-import eu.cloudnetservice.node.Node;
-import eu.cloudnetservice.node.module.ModuleEntry;
-import eu.cloudnetservice.node.module.ModulesHolder;
+import eu.cloudnetservice.node.impl.Node;
+import eu.cloudnetservice.node.impl.module.ModuleEntry;
+import eu.cloudnetservice.node.impl.module.ModulesHolder;
+import eu.cloudnetservice.utils.base.StringUtil;
+import eu.cloudnetservice.utils.base.io.FileUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.io.IOException;

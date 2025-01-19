@@ -28,6 +28,8 @@ repositories {
 dependencies {
   api(projects.webApi)
   moduleLibrary(libs.guava)
+  moduleLibrary(libs.unirest)
+  moduleLibrary(libs.caffeine)
 
   implementation(projects.webJwtAuth)
   moduleLibrary(libs.jjwtApi)
@@ -53,8 +55,8 @@ dependencies {
   compileOnly(libs.logbackCore)
   compileOnly(libs.logbackClassic)
 
-  compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC12-SNAPSHOT")
-  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC12-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC12-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC12-SNAPSHOT")
 }
 
 tasks.withType<Test> {
