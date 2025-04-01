@@ -18,8 +18,7 @@ package eu.cloudnetservice.ext.modules.rest.v3.bridge;
 
 import com.google.common.base.Enums;
 import com.google.common.primitives.Ints;
-import eu.cloudnetservice.common.util.StringUtil;
-import eu.cloudnetservice.driver.registry.ServiceRegistry;
+import eu.cloudnetservice.driver.registry.Service;
 import eu.cloudnetservice.ext.component.ComponentFormats;
 import eu.cloudnetservice.ext.modules.rest.page.PageSortingMode;
 import eu.cloudnetservice.ext.modules.rest.page.Paging;
@@ -40,6 +39,7 @@ import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
 import eu.cloudnetservice.modules.bridge.player.executor.PlayerExecutor;
 import eu.cloudnetservice.modules.bridge.player.executor.ServerSelectorType;
+import eu.cloudnetservice.utils.base.StringUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
@@ -57,8 +57,8 @@ public class V3HttpHandlerPlayer {
   private final PlayerManager playerManager;
 
   @Inject
-  public V3HttpHandlerPlayer(ServiceRegistry serviceRegistry) {
-    this.playerManager = serviceRegistry.firstProvider(PlayerManager.class);
+  public V3HttpHandlerPlayer(@Service PlayerManager playerManager) {
+    this.playerManager = playerManager;
   }
 
   @RequestHandler(path = "/api/v3/player/onlineCount")

@@ -18,7 +18,7 @@ package eu.cloudnetservice.ext.modules.rest.dto.version;
 
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
-import eu.cloudnetservice.node.version.ServiceVersion;
+import eu.cloudnetservice.node.impl.version.ServiceVersion;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;

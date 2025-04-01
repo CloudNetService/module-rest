@@ -17,12 +17,12 @@
 package eu.cloudnetservice.ext.modules.rest.auth;
 
 import com.google.common.base.Preconditions;
-import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.ext.modules.rest.UUIDv7;
 import eu.cloudnetservice.ext.modules.rest.auth.util.PasswordEncryptionUtil;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.utils.base.StringUtil;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -194,8 +194,8 @@ public final class DefaultRestUser implements RestUser {
     public @NonNull Builder password(@NonNull String password) {
       this.validatePassword(password);
       var hashedPasswordInfo = PasswordEncryptionUtil.encrypt(password);
-      this.properties.put(PASSWORD_KEY, hashedPasswordInfo.second());
-      this.properties.put(PASSWORD_SALT_KEY, hashedPasswordInfo.first());
+      this.properties.put(PASSWORD_KEY, hashedPasswordInfo._2());
+      this.properties.put(PASSWORD_SALT_KEY, hashedPasswordInfo._1());
       return this;
     }
 

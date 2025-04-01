@@ -16,7 +16,6 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
-import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceTemplate;
 import eu.cloudnetservice.ext.modules.rest.dto.version.ServiceEnvironmentTypeDto;
@@ -33,12 +32,13 @@ import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.validation.EnableValidation;
+import eu.cloudnetservice.node.impl.version.ServiceVersion;
+import eu.cloudnetservice.node.impl.version.ServiceVersionProvider;
+import eu.cloudnetservice.node.impl.version.ServiceVersionType;
+import eu.cloudnetservice.node.impl.version.information.FileSystemVersionInstaller;
+import eu.cloudnetservice.node.impl.version.information.TemplateVersionInstaller;
 import eu.cloudnetservice.node.service.CloudServiceManager;
-import eu.cloudnetservice.node.version.ServiceVersion;
-import eu.cloudnetservice.node.version.ServiceVersionProvider;
-import eu.cloudnetservice.node.version.ServiceVersionType;
-import eu.cloudnetservice.node.version.information.FileSystemVersionInstaller;
-import eu.cloudnetservice.node.version.information.TemplateVersionInstaller;
+import eu.cloudnetservice.utils.base.io.FileUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;

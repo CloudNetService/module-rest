@@ -16,7 +16,6 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
-import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.provider.CloudServiceFactory;
 import eu.cloudnetservice.driver.provider.ServiceTaskProvider;
 import eu.cloudnetservice.driver.provider.SpecificCloudServiceProvider;
@@ -49,6 +48,7 @@ import eu.cloudnetservice.node.service.CloudService;
 import eu.cloudnetservice.node.service.CloudServiceManager;
 import eu.cloudnetservice.node.service.ServiceConsoleLineHandler;
 import eu.cloudnetservice.node.service.ServiceConsoleLogCache;
+import eu.cloudnetservice.utils.base.StringUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;

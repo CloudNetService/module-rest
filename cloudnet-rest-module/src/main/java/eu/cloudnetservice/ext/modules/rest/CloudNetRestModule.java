@@ -18,14 +18,16 @@ package eu.cloudnetservice.ext.modules.rest;
 
 import dev.derklaro.aerogel.SpecifiedInjector;
 import dev.derklaro.aerogel.binding.BindingBuilder;
-import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.cloudnetservice.driver.language.I18n;
+import eu.cloudnetservice.driver.language.PropertiesTranslationProvider;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleProvider;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
+import eu.cloudnetservice.driver.registry.Service;
 import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.modules.rest.listener.CloudNetBridgeInitializer;
 import eu.cloudnetservice.ext.modules.rest.listener.RestUserUpdateListener;
@@ -48,10 +50,16 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.factory.HttpComponentFactoryLoader;
 import eu.cloudnetservice.ext.rest.validation.ValidationHandlerMethodContextDecorator;
-import eu.cloudnetservice.node.TickLoop;
 import eu.cloudnetservice.node.command.CommandProvider;
+import eu.cloudnetservice.node.tick.Scheduler;
+import eu.cloudnetservice.utils.base.io.FileUtil;
+import eu.cloudnetservice.utils.base.resource.ResourceResolver;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,9 +69,30 @@ public final class CloudNetRestModule extends DriverModule {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CloudNetRestModule.class);
 
+  public static void loadTranslations(@NonNull I18n i18n) {
+    var resourcePath = Path.of(ResourceResolver.resolveCodeSourceOfClass(CloudNetRestModule.class));
+    FileUtil.openZipFile(resourcePath, fs -> {
+      // get the language directory
+      var langDir = fs.getPath("lang/");
+      if (Files.notExists(langDir) || !Files.isDirectory(langDir)) {
+        throw new IllegalStateException("lang/ must be an existing directory inside the jar to load");
+      }
+      // visit each file and register it as a language source
+      FileUtil.walkFileTree(langDir, ($, sub) -> {
+        // try to load and register the language file
+        try (var stream = Files.newInputStream(sub)) {
+          var lang = sub.getFileName().toString().replace(".properties", "");
+          i18n.registerProvider(Locale.forLanguageTag(lang), PropertiesTranslationProvider.fromProperties(stream));
+        } catch (IOException exception) {
+          LOGGER.error("Unable to open language file for reading @ {}", sub, exception);
+        }
+      }, false, "*.properties");
+    });
+  }
+
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.LOADED)
-  public void loadLanguageFile() {
-    I18n.loadFromLangPath(this.getClass());
+  public void loadLanguageFile(@NonNull @Service I18n i18n) {
+    loadTranslations(i18n);
   }
 
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
@@ -132,13 +161,13 @@ public final class CloudNetRestModule extends DriverModule {
 
   @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
   public void scheduleBridgeInitialization(
-    @NonNull TickLoop tickLoop,
+    @NonNull Scheduler scheduler,
     @NonNull ModuleProvider moduleProvider,
     @NonNull HttpServer server,
     @NonNull @Named("module") InjectionLayer<SpecifiedInjector> moduleLayer
   ) {
     // we want to register the bridge handlers after all modules are started
-    tickLoop.runTask(() -> CloudNetBridgeInitializer.installBridgeHandler(moduleProvider, server, moduleLayer));
+    scheduler.runTask(() -> CloudNetBridgeInitializer.installBridgeHandler(moduleProvider, server, moduleLayer));
   }
 
   @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)

@@ -17,8 +17,8 @@
 package eu.cloudnetservice.ext.modules.rest.dto.version;
 
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
-import eu.cloudnetservice.node.version.ServiceVersionType;
-import eu.cloudnetservice.node.version.execute.InstallStep;
+import eu.cloudnetservice.node.impl.version.ServiceVersionType;
+import eu.cloudnetservice.node.impl.version.execute.InstallStep;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
