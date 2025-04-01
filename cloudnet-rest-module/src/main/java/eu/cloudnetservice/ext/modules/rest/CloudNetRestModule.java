@@ -16,8 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
-import dev.derklaro.aerogel.SpecifiedInjector;
-import dev.derklaro.aerogel.binding.BindingBuilder;
+import dev.derklaro.aerogel.Injector;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
@@ -108,17 +107,16 @@ public final class CloudNetRestModule extends DriverModule {
     // registers the validation-enabling context decorator
     var validationDecorator = ValidationHandlerMethodContextDecorator.withDefaultValidator();
     server.annotationParser().registerHandlerContextDecorator(validationDecorator);
-
-    // bind the server and register it for injection
-    restConfig.httpListeners().forEach(listener -> server.addListener(listener).join());
-    injectionLayer.install(BindingBuilder.create().bind(HttpServer.class).toInstance(server));
-
-    // add the cloudnet logger interceptor
     server.annotationParser().registerAnnotationProcessor(new CloudNetLoggerInterceptor());
 
-    // bind the rest user management for injection
+    // bind the server listeners
+    restConfig.httpListeners().forEach(listener -> server.addListener(listener).join());
+
+    // register required instances for injection
     var restUserManagement = RestUserManagementLoader.load();
-    injectionLayer.install(BindingBuilder.create().bind(RestUserManagement.class).toInstance(restUserManagement));
+    var bindingBuilder = injectionLayer.injector().createBindingBuilder();
+    injectionLayer.install(bindingBuilder.bind(HttpServer.class).toInstance(server));
+    injectionLayer.install(bindingBuilder.bind(RestUserManagement.class).toInstance(restUserManagement));
   }
 
   @ModuleTask(order = 107, lifecycle = ModuleLifeCycle.STARTED)
@@ -164,7 +162,7 @@ public final class CloudNetRestModule extends DriverModule {
     @NonNull Scheduler scheduler,
     @NonNull ModuleProvider moduleProvider,
     @NonNull HttpServer server,
-    @NonNull @Named("module") InjectionLayer<SpecifiedInjector> moduleLayer
+    @NonNull @Named("module") InjectionLayer<Injector> moduleLayer
   ) {
     // we want to register the bridge handlers after all modules are started
     scheduler.runTask(() -> CloudNetBridgeInitializer.installBridgeHandler(moduleProvider, server, moduleLayer));
@@ -178,11 +176,11 @@ public final class CloudNetRestModule extends DriverModule {
   @ModuleTask(lifecycle = ModuleLifeCycle.STOPPED)
   public void unregisterModule(
     @NonNull HttpServer httpServer,
-    @Named("module") InjectionLayer<SpecifiedInjector> layer
+    @Named("module") InjectionLayer<Injector> layer
   ) {
     try {
       httpServer.close();
-      layer.injector().removeConstructedBindings();
+      layer.injector().close();
     } catch (Exception exception) {
       LOGGER.error("Unable to close http server while disabling cloudnet rest module.", exception);
     }
