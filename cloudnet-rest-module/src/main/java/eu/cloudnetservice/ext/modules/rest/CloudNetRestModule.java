@@ -71,16 +71,14 @@ public final class CloudNetRestModule extends DriverModule {
   public static void loadTranslations(@NonNull I18n i18n) {
     var resourcePath = Path.of(ResourceResolver.resolveCodeSourceOfClass(CloudNetRestModule.class));
     FileUtil.openZipFile(resourcePath, fs -> {
-      // get the language directory
       var langDir = fs.getPath("lang/");
       if (Files.notExists(langDir) || !Files.isDirectory(langDir)) {
         throw new IllegalStateException("lang/ must be an existing directory inside the jar to load");
       }
-      // visit each file and register it as a language source
+
       FileUtil.walkFileTree(langDir, ($, sub) -> {
-        // try to load and register the language file
         try (var stream = Files.newInputStream(sub)) {
-          var lang = sub.getFileName().toString().replace(".properties", "");
+          var lang = sub.getFileName().toString().replace('_', '-').replace(".properties", "");
           i18n.registerProvider(Locale.forLanguageTag(lang), PropertiesTranslationProvider.fromProperties(stream));
         } catch (IOException exception) {
           LOGGER.error("Unable to open language file for reading @ {}", sub, exception);
