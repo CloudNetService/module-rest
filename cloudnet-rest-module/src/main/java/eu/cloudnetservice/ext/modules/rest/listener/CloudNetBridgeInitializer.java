@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.listener;
 
-import dev.derklaro.aerogel.SpecifiedInjector;
+import dev.derklaro.aerogel.Injector;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleProvider;
@@ -35,7 +35,7 @@ public class CloudNetBridgeInitializer {
   public static void installBridgeHandler(
     @NonNull ModuleProvider moduleProvider,
     @NonNull HttpServer server,
-    @NonNull InjectionLayer<SpecifiedInjector> moduleLayer
+    @NonNull InjectionLayer<Injector> moduleLayer
   ) {
     var bridgeModule = moduleProvider.module(BRIDGE_MODULE_NAME);
     if (bridgeModule == null || bridgeModule.moduleLifeCycle() != ModuleLifeCycle.STARTED) {
