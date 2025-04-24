@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.auth.util;
 
-import eu.cloudnetservice.common.tuple.Tuple2;
+import io.vavr.Tuple2;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;

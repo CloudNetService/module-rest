@@ -16,17 +16,17 @@
 
 package eu.cloudnetservice.ext.modules.rest.validation.validator;
 
-import eu.cloudnetservice.ext.modules.rest.validation.HostAddress;
-import eu.cloudnetservice.node.impl.util.NetworkUtil;
+import ch.qos.logback.classic.Level;
+import eu.cloudnetservice.ext.modules.rest.validation.LogLevel;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
-public class HostAddressValidator implements ConstraintValidator<HostAddress, String> {
+public final class LogLevelValidator implements ConstraintValidator<LogLevel, String> {
 
   @Override
-  public boolean isValid(@NonNull String value, @NonNull ConstraintValidatorContext context) {
-    var hostAddress = NetworkUtil.parseHostAndPort(value, false);
-    return hostAddress != null;
+  public boolean isValid(@Nullable String value, @NonNull ConstraintValidatorContext context) {
+    return value == null || Level.toLevel(value, null) != null;
   }
 }

@@ -16,8 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.api.annotation.invoke;
 
-import javax.annotation.CheckReturnValue;
 import lombok.NonNull;
+import org.jetbrains.annotations.CheckReturnValue;
 
 // there is no constraint if the class impl should be constructed per-method or per-jvm
 @FunctionalInterface

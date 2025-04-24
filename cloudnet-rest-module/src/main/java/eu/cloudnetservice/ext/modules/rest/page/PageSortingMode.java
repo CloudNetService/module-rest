@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.page;
 
-import eu.cloudnetservice.common.util.StringUtil;
+import eu.cloudnetservice.utils.base.StringUtil;
 import java.util.Comparator;
 import java.util.function.Function;
 import lombok.NonNull;

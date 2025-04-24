@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.dto;
 
 import eu.cloudnetservice.driver.document.Document;
-import eu.cloudnetservice.node.config.JsonConfiguration;
+import eu.cloudnetservice.node.impl.config.JsonConfiguration;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

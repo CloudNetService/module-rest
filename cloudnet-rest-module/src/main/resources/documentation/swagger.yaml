@@ -681,6 +681,15 @@ paths:
             The ticket secret used for authentication purposes. Can be omitted if jwt authentication is used.
           schema:
             type: string
+        - name: threshold
+          in: query
+          required: false
+          description: |
+            The log level threshold. Only log entries with the same or higher log level will be sent.
+            The lowest level that is actually sent is the configured log level of the node itself,
+            requesting lower levels is possible but there is no effect.
+          schema:
+            $ref: '#/components/schemas/LogLevel'
       summary: Live console
       description: |
         Upgrades the connection to a web socket connection and sends all new
@@ -689,9 +698,14 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:node_read`
           - `cloudnet_rest:node_live_console`
+        
+        Sending commands to the console using the websocket is only allowed if the following scope is set:
+          - `cloudnet_rest:node_send_commands`
       responses:
         '101':
           description: Switching the protocol to a websocket
+        '400':
+          $ref: '#/components/responses/Problem'
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -4686,6 +4700,16 @@ components:
           examples:
             - CloudNet-Bridge
             - CloudNet-Signs
+    LogLevel:
+      type: string
+      enum:
+        - ALL
+        - TRACE
+        - DEBUG
+        - INFO
+        - WARN
+        - ERROR
+        - OFF
     CloudNetVersion:
       type: object
       properties:

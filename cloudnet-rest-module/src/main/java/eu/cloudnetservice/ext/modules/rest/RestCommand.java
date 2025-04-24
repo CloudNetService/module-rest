@@ -16,7 +16,8 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
-import eu.cloudnetservice.common.language.I18n;
+import eu.cloudnetservice.driver.language.I18n;
+import eu.cloudnetservice.driver.registry.Service;
 import eu.cloudnetservice.ext.modules.rest.auth.DefaultRestUser;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
@@ -45,11 +46,13 @@ import org.incendo.cloud.context.CommandInput;
 @Description("module-rest-command-description")
 public final class RestCommand {
 
+  private final I18n i18n;
   private final AuthProvider authProvider;
   private final RestUserManagement restUserManagement;
 
   @Inject
-  public RestCommand(@NonNull RestUserManagement restUserManagement) {
+  public RestCommand(@NonNull @Service I18n i18n, @NonNull RestUserManagement restUserManagement) {
+    this.i18n = i18n;
     this.restUserManagement = restUserManagement;
     this.authProvider = AuthProviderLoader.resolveAuthProvider("basic");
   }
@@ -59,7 +62,7 @@ public final class RestCommand {
     var username = input.readString();
     var user = this.restUserManagement.restUserByUsername(username);
     if (user == null) {
-      throw new ArgumentNotAvailableException(I18n.trans("module-rest-user-not-found", username));
+      throw new ArgumentNotAvailableException(this.i18n.translate("module-rest-user-not-found", username));
     }
 
     // this implementation is based on our rest user implementation
@@ -67,7 +70,7 @@ public final class RestCommand {
       return defaultRestUser;
     }
 
-    throw new ArgumentNotAvailableException(I18n.trans(
+    throw new ArgumentNotAvailableException(this.i18n.translate(
       "module-rest-unknown-user-type",
       user.getClass().getSimpleName()));
   }
@@ -79,7 +82,7 @@ public final class RestCommand {
       return scope;
     }
 
-    throw new ArgumentNotAvailableException(I18n.trans(
+    throw new ArgumentNotAvailableException(this.i18n.translate(
       "argument-parse-failure-regex",
       RestUser.SCOPE_NAMING_PATTERN.pattern(),
       scope));
@@ -92,7 +95,7 @@ public final class RestCommand {
     @Argument("password") @Regex(DefaultRestUser.PASSWORD_REGEX) @NonNull String password
   ) {
     if (this.restUserManagement.restUserByUsername(username) != null) {
-      source.sendMessage(I18n.trans("module-rest-user-already-existing", username));
+      source.sendMessage(this.i18n.translate("module-rest-user-already-existing", username));
       return;
     }
 
@@ -105,13 +108,13 @@ public final class RestCommand {
       .build();
     this.restUserManagement.saveRestUser(user);
 
-    source.sendMessage(I18n.trans("module-rest-user-create-successful", username));
+    source.sendMessage(this.i18n.translate("module-rest-user-create-successful", username));
   }
 
   @Command("rest user delete <username>")
   public void deleteRestUser(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
     this.restUserManagement.deleteRestUser(restUser.id());
-    source.sendMessage(I18n.trans("module-rest-user-delete-successful", restUser.username()));
+    source.sendMessage(this.i18n.translate("module-rest-user-delete-successful", restUser.username()));
   }
 
   @Command("rest user <username>")
@@ -130,13 +133,13 @@ public final class RestCommand {
     @Argument(value = "scope", parserName = "restUserScope") @NonNull String scope
   ) {
     this.updateRestUser(source, restUser, builder -> builder.scope(scope));
-    source.sendMessage(I18n.trans("module-rest-user-add-scope-successful", restUser.username(), scope));
+    source.sendMessage(this.i18n.translate("module-rest-user-add-scope-successful", restUser.username(), scope));
   }
 
   @Command("rest user <username> clear scopes")
   public void clearScopes(@NonNull CommandSource source, @Argument("username") @NonNull DefaultRestUser restUser) {
     this.updateRestUser(source, restUser, builder -> builder.scopes(Set.of()));
-    source.sendMessage(I18n.trans("module-rest-user-clear-scopes-successful", restUser.username()));
+    source.sendMessage(this.i18n.translate("module-rest-user-clear-scopes-successful", restUser.username()));
   }
 
   @Command("rest user <username> remove scope <scope>")
@@ -146,7 +149,7 @@ public final class RestCommand {
     @Argument("scope") @NonNull String scope
   ) {
     this.updateRestUser(source, restUser, builder -> builder.modifyScopes(scopes -> scopes.remove(scope)));
-    source.sendMessage(I18n.trans("module-rest-user-remove-scope-successful", restUser.username(), scope));
+    source.sendMessage(this.i18n.translate("module-rest-user-remove-scope-successful", restUser.username(), scope));
   }
 
   @Command("rest user <username> set password <password>")
@@ -156,7 +159,7 @@ public final class RestCommand {
     @Argument("password") @NonNull String password
   ) {
     this.updateRestUser(source, restUser, builder -> builder.password(password));
-    source.sendMessage(I18n.trans("module-rest-user-password-changed", restUser.username()));
+    source.sendMessage(this.i18n.translate("module-rest-user-password-changed", restUser.username()));
   }
 
   @Command("rest user <username> verifyPassword <password>")
@@ -168,12 +171,12 @@ public final class RestCommand {
     if (this.authProvider instanceof BasicAuthProvider basicAuthProvider) {
       var valid = basicAuthProvider.validatePassword(restUser, password.getBytes(StandardCharsets.UTF_8));
       if (valid) {
-        source.sendMessage(I18n.trans("module-rest-user-password-match", restUser.username()));
+        source.sendMessage(this.i18n.translate("module-rest-user-password-match", restUser.username()));
       } else {
-        source.sendMessage(I18n.trans("module-rest-user-password-mismatch", restUser.username()));
+        source.sendMessage(this.i18n.translate("module-rest-user-password-mismatch", restUser.username()));
       }
     } else {
-      source.sendMessage(I18n.trans("module-rest-user-verify-basic-auth-provider-missing"));
+      source.sendMessage(this.i18n.translate("module-rest-user-verify-basic-auth-provider-missing"));
     }
   }
 
