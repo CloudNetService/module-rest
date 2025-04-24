@@ -58,6 +58,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -217,8 +218,24 @@ public final class V3HttpHandlerNode {
 
   @RequestHandler(path = "/api/v3/node/logLines")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_log_lines"})
-  public @NonNull IntoResponse<?> handleLogLinesRequest() {
-    return JsonResponse.builder().body(Map.of("lines", this.consoleLogAppender.formattedCachedLogLines()));
+  public @NonNull IntoResponse<?> handleLogLinesRequest(
+    @NonNull @Optional @FirstRequestQueryParam(value = "format", def = "raw") String formatType
+  ) {
+    return switch (formatType.toLowerCase(Locale.ROOT)) {
+      case "raw" -> {
+        var lines = this.consoleLogAppender.cachedLogEntries().stream()
+          .map(ILoggingEvent::getFormattedMessage)
+          .toList();
+        yield JsonResponse.builder().body(lines);
+      }
+      case "ansi" -> JsonResponse.builder().body(this.consoleLogAppender.cachedLogEntries());
+      default -> ProblemDetail.builder()
+        .type("console-invalid-formatting-type")
+        .title("Console Invalid Formatting Type")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The cached log lines do not support the format " + formatType)
+        .build();
+    };
   }
 
   private void reloadConfig() {

@@ -714,8 +714,21 @@ paths:
     get:
       tags:
         - Node
+      parameters:
+        - name: format
+          in: query
+          required: false
+          description: |
+            Whether to send the cached log lines as plain text or as ansi formatted text.
+            - `raw`: The log lines are sent as plain text
+            - `ansi`: The log lines are sent as ansi formatted text
+            
+            If no value is provided the default value is `raw`.
       summary: Get the cached log lines of the node the request is sent to
       description: |
+        Based on the requested formatting the log lines are either returned as text only, where no color and formatting
+        is applied or as ansi formatted text, where the color and formatting is applied.
+        
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:node_read`
           - `cloudnet_rest:node_log_lines`
