@@ -743,6 +743,9 @@ paths:
                     type: array
                     items:
                       type: string
+        '400':
+          description: If the requested format is not supported.
+          $ref: '#/components/responses/Problem'
         '401':
           $ref: '#/components/responses/Problem'
         '403':

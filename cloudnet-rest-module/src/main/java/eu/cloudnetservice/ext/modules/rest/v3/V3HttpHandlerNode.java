@@ -226,9 +226,9 @@ public final class V3HttpHandlerNode {
         var lines = this.consoleLogAppender.cachedLogEntries().stream()
           .map(ILoggingEvent::getFormattedMessage)
           .toList();
-        yield JsonResponse.builder().body(lines);
+        yield JsonResponse.builder().body(Map.of("lines", lines));
       }
-      case "ansi" -> JsonResponse.builder().body(this.consoleLogAppender.cachedLogEntries());
+      case "ansi" -> JsonResponse.builder().body(Map.of("lines", this.consoleLogAppender.formattedCachedLogLines()));
       default -> ProblemDetail.builder()
         .type("console-invalid-formatting-type")
         .title("Console Invalid Formatting Type")
