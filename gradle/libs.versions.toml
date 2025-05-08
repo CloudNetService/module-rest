@@ -3,14 +3,14 @@
 # plugins
 shadow = "8.3.6"
 juppiter = "0.4.0"
-spotless = "7.0.2"
+spotless = "7.0.3"
 nexusPublish = "2.0.0"
 checkstyleTools = "10.23.1"
 
 # testing
-junit = "5.12.1"
+junit = "5.12.2"
 mockito = "5.17.0"
-junitLauncher = "1.12.1"
+junitLauncher = "1.12.2"
 testcontainers = "1.21.0"
 
 # compile time processing
@@ -19,9 +19,9 @@ lombok = "1.18.38"
 # runtime dependencies
 gson = "2.13.1"
 jjwt = "0.12.6"
-guava = "33.4.6-jre"
+guava = "33.4.8-jre"
 annotations = "26.0.2"
-unirest = "4.4.5"
+unirest = "4.4.6"
 caffeine = "3.2.0"
 
 # logging
