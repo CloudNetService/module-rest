@@ -17,7 +17,7 @@ testcontainers = "1.21.0"
 lombok = "1.18.38"
 
 # runtime dependencies
-gson = "2.12.1"
+gson = "2.13.1"
 jjwt = "0.12.6"
 guava = "33.4.6-jre"
 annotations = "26.0.2"
