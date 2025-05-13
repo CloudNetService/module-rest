@@ -71,9 +71,15 @@ allprojects {
     }
 
     // allow dynamic agent loading for mockito
-    jvmArgs("-XX:+EnableDynamicAgentLoading")
+    jvmArgs(
+      "--enable-preview",
+      "-XX:+EnableDynamicAgentLoading",
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"
+    )
+
     // always pass down all given system properties
     systemProperties(System.getProperties().mapKeys { it.key.toString() })
+    systemProperty("io.netty5.noUnsafe", "true")
   }
 
   tasks.withType<JavaCompile>().configureEach {

@@ -35,7 +35,7 @@ dependencies {
   moduleLibrary(libs.jjwtApi)
   moduleLibrary(libs.jjwtImpl)
   moduleLibrary(libs.jjwtGson)
-  
+
   implementation(projects.webTicketAuth)
 
   implementation(projects.webImplNetty)
@@ -64,8 +64,8 @@ tasks.withType<Test> {
 }
 
 tasks.withType<JavaCompile> {
-  sourceCompatibility = JavaVersion.VERSION_23.toString()
-  targetCompatibility = JavaVersion.VERSION_23.toString()
+  sourceCompatibility = JavaVersion.VERSION_24.toString()
+  targetCompatibility = JavaVersion.VERSION_24.toString()
 
   options.compilerArgs.add("-Xlint:-preview")
   options.compilerArgs.add("--enable-preview")
@@ -73,14 +73,14 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Javadoc> {
   val options = options as? StandardJavadocDocletOptions ?: return@withType
-  options.addStringOption("-release", "23")
+  options.addStringOption("-release", "24")
   options.addBooleanOption("-enable-preview", true)
 }
 
 extensions.configure<JavaPluginExtension> {
   toolchain {
     vendor = JvmVendorSpec.AZUL
-    languageVersion = JavaLanguageVersion.of(23)
+    languageVersion = JavaLanguageVersion.of(24)
   }
 }
 
@@ -94,11 +94,6 @@ tasks.withType<ShadowJar> {
       it.moduleGroup.startsWith("eu.cloudnetservice")
     }
   }
-}
-
-tasks.withType<JavaCompile> {
-  sourceCompatibility = JavaVersion.VERSION_23.toString()
-  targetCompatibility = JavaVersion.VERSION_23.toString()
 }
 
 moduleJson {

@@ -23,12 +23,12 @@ import io.netty5.channel.MultithreadEventLoopGroup;
 import io.netty5.channel.ServerChannel;
 import io.netty5.channel.ServerChannelFactory;
 import io.netty5.channel.epoll.Epoll;
-import io.netty5.channel.epoll.EpollHandler;
+import io.netty5.channel.epoll.EpollIoHandler;
 import io.netty5.channel.epoll.EpollServerSocketChannel;
 import io.netty5.channel.kqueue.KQueue;
-import io.netty5.channel.kqueue.KQueueHandler;
+import io.netty5.channel.kqueue.KQueueIoHandler;
 import io.netty5.channel.kqueue.KQueueServerSocketChannel;
-import io.netty5.channel.nio.NioHandler;
+import io.netty5.channel.nio.NioIoHandler;
 import io.netty5.channel.socket.nio.NioServerSocketChannel;
 import java.util.function.Supplier;
 import lombok.NonNull;
@@ -44,21 +44,21 @@ enum NettyTransportType {
     "epoll",
     Epoll.isAvailable(),
     true,
-    EpollHandler::newFactory,
+    EpollIoHandler::newFactory,
     EpollServerSocketChannel::new
   ),
   KQUEUE(
     "kqueue",
     KQueue.isAvailable(),
     true,
-    KQueueHandler::newFactory,
+    KQueueIoHandler::newFactory,
     KQueueServerSocketChannel::new
   ),
   NIO(
     "nio",
     true,
     false,
-    NioHandler::newFactory,
+    NioIoHandler::newFactory,
     NioServerSocketChannel::new
   );
 

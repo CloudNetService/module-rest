@@ -34,7 +34,7 @@ jakartaValidationApi = "3.1.1"
 hibernateValidator = "8.0.2.Final"
 
 # netty stuff
-netty = "5.0.0.Alpha5"
+netty = "5.0.0.Alpha6-SNAPSHOT"
 nettyContribHaProxy = "5.0.0.Alpha2"
 
 [libraries]
