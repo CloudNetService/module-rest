@@ -24,6 +24,8 @@ import eu.cloudnetservice.ext.rest.api.config.SslConfiguration;
 import eu.cloudnetservice.ext.rest.api.registry.HttpHandlerRegistry;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import io.netty5.bootstrap.ServerBootstrap;
+import io.netty5.buffer.MemoryManager;
+import io.netty5.buffer.bytebuffer.ByteBufferMemoryManager;
 import io.netty5.channel.ChannelOption;
 import io.netty5.channel.EventLoopGroup;
 import io.netty5.handler.ssl.IdentityCipherSuiteFilter;
@@ -53,6 +55,7 @@ final class NettyHttpServer implements HttpServer {
 
   private final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
 
+  private final MemoryManager memoryManager;
   private final NettyTransportType transportType;
   private final EventLoopGroup bossEventLoopGroup;
   private final EventLoopGroup workerEventLoopGroup;
@@ -76,6 +79,7 @@ final class NettyHttpServer implements HttpServer {
     this.sslContext = initSslContext(componentConfig.sslConfiguration());
 
     // select the available netty transport & create new a new event loop group with them
+    this.memoryManager = new ByteBufferMemoryManager();
     this.transportType = NettyTransportType.availableTransport(componentConfig.disableNativeTransport());
     this.bossEventLoopGroup = this.transportType.createEventLoopGroup(1);
     this.workerEventLoopGroup = this.transportType.createEventLoopGroup(0);
@@ -151,6 +155,7 @@ final class NettyHttpServer implements HttpServer {
         this.sslContext,
         hostAndPort,
         this,
+        this.memoryManager,
         this.componentConfig.executorService(),
         this.componentConfig.maxContentLength()))
 

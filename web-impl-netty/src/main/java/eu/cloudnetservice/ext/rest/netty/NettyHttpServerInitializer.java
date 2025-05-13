@@ -18,6 +18,7 @@ package eu.cloudnetservice.ext.rest.netty;
 
 import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
+import io.netty5.buffer.MemoryManager;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelInitializer;
 import io.netty5.handler.codec.http.HttpContentCompressor;
@@ -41,6 +42,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
   private final HostAndPort listenerAddress;
   private final NettyHttpServer nettyHttpServer;
 
+  private final MemoryManager memoryManager;
   private final ExecutorService executorService;
 
   private final int maxContentLength;
@@ -51,6 +53,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
    * @param serverSslContext the ssl context to use for the http server, null if ssl is disabled.
    * @param nettyHttpServer  the http server the initializer belongs to.
    * @param listenerAddress  the host and port of the listener which was bound.
+   * @param memoryManager    the memory manager used on the channel.
    * @param executorService  the executor service to use when handling requests.
    * @param maxContentLength the maximum size (in bytes) of the content the http server is allowed to handle.
    * @throws NullPointerException if either the http server or host and port is null.
@@ -59,12 +62,14 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
     @Nullable SslContext serverSslContext,
     @NonNull HostAndPort listenerAddress,
     @NonNull NettyHttpServer nettyHttpServer,
+    @NonNull MemoryManager memoryManager,
     @NonNull ExecutorService executorService,
     int maxContentLength
   ) {
     this.serverSslContext = serverSslContext;
     this.listenerAddress = listenerAddress;
     this.nettyHttpServer = nettyHttpServer;
+    this.memoryManager = memoryManager;
     this.executorService = executorService;
     this.maxContentLength = maxContentLength;
   }
@@ -87,7 +92,9 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       ch.pipeline().addLast("ssl-handler", this.serverSslContext.newHandler(ch.bufferAllocator()));
     }
 
-    ch.pipeline()
+    // override memory manager here as the constructor of some handlers use
+    // the default allocator instead of the configured allocator on the channel
+    MemoryManager.using(this.memoryManager, () -> ch.pipeline()
       .addLast("read-timeout-handler", new NettyIdleStateHandler(30))
       .addLast("http-request-decoder", new HttpRequestDecoder())
       .addLast("http-request-decompressor", new HttpContentDecompressor())
@@ -98,6 +105,6 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       .addLast("http-server-handler", new NettyHttpServerHandler(
         this.nettyHttpServer,
         this.listenerAddress,
-        this.executorService));
+        this.executorService)));
   }
 }
