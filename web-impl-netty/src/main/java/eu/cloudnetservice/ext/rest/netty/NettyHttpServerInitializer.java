@@ -99,7 +99,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       .addLast("http-request-decompressor", new HttpContentDecompressor())
       .addLast("http-response-encoder", new HttpResponseEncoder())
       // TODO: re-enable compression when JDK-8357145 is resolved
-      // .addLast("http-response-compressor", new HttpContentCompressor(StandardCompressionOptions.deflate()))
+      // .addLast("http-response-compressor", new HttpContentCompressor())
       .addLast("http-response-chunk-writer", new ChunkedWriteHandler())
       .addLast("http-object-aggregator", new NettyOversizedClosingHttpAggregator<>(this.maxContentLength))
       .addLast("http-server-handler", new NettyHttpServerHandler(
