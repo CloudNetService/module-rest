@@ -21,7 +21,6 @@ import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import io.netty5.buffer.MemoryManager;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelInitializer;
-import io.netty5.handler.codec.http.HttpContentCompressor;
 import io.netty5.handler.codec.http.HttpContentDecompressor;
 import io.netty5.handler.codec.http.HttpRequestDecoder;
 import io.netty5.handler.codec.http.HttpResponseEncoder;
@@ -99,7 +98,8 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       .addLast("http-request-decoder", new HttpRequestDecoder())
       .addLast("http-request-decompressor", new HttpContentDecompressor())
       .addLast("http-response-encoder", new HttpResponseEncoder())
-      .addLast("http-response-compressor", new HttpContentCompressor())
+      // TODO: re-enable compression when JDK-8357145 is resolved
+      // .addLast("http-response-compressor", new HttpContentCompressor(StandardCompressionOptions.deflate()))
       .addLast("http-response-chunk-writer", new ChunkedWriteHandler())
       .addLast("http-object-aggregator", new NettyOversizedClosingHttpAggregator<>(this.maxContentLength))
       .addLast("http-server-handler", new NettyHttpServerHandler(
