@@ -1,5 +1,3 @@
-import com.diffplug.gradle.spotless.SpotlessExtension
-
 /*
  * Copyright 2019-2023 CloudNetService team & contributors
  *
@@ -15,6 +13,8 @@ import com.diffplug.gradle.spotless.SpotlessExtension
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import com.diffplug.gradle.spotless.SpotlessExtension
 
 plugins {
   alias(libs.plugins.spotless)
@@ -36,7 +36,7 @@ allprojects {
   repositories {
     mavenCentral()
     maven("https://repository.derklaro.dev/releases/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://repository.derklaro.dev/snapshots/")
   }
 
   dependencies {
@@ -71,9 +71,14 @@ allprojects {
     }
 
     // allow dynamic agent loading for mockito
-    jvmArgs("-XX:+EnableDynamicAgentLoading")
+    jvmArgs(
+      "-XX:+EnableDynamicAgentLoading",
+      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"
+    )
+
     // always pass down all given system properties
     systemProperties(System.getProperties().mapKeys { it.key.toString() })
+    systemProperty("io.netty5.noUnsafe", "true")
   }
 
   tasks.withType<JavaCompile>().configureEach {

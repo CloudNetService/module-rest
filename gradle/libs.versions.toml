@@ -2,7 +2,7 @@
 
 # plugins
 shadow = "8.3.6"
-juppiter = "0.4.0"
+juppiter = "0.5.0-beta.1"
 spotless = "7.0.3"
 nexusPublish = "2.0.0"
 checkstyleTools = "10.23.1"
@@ -34,7 +34,7 @@ jakartaValidationApi = "3.1.1"
 hibernateValidator = "8.0.2.Final"
 
 # netty stuff
-netty = "5.0.0.Alpha5"
+netty = "5.0.0.Alpha6-SNAPSHOT"
 nettyContribHaProxy = "5.0.0.Alpha2"
 
 [libraries]
