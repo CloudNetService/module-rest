@@ -43,10 +43,11 @@ jobs:
         run: ./gradlew build test shadowJar --stacktrace
 
       - name: Publish test summary
-        if: always()
+        if: ${{ always() }}
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          junit_files: "**/build/test-results/test/TEST-*.xml"
+          files: "**/build/test-results/test/TEST-*.xml"
+          comment_mode: ${{ github.event_name == 'pull_request' && 'always' || 'off' }}
 
       - name: Prepare artifact jar
         run: cp cloudnet-rest-module/build/libs/cloudnet-rest.jar cloudnet-rest.jar
