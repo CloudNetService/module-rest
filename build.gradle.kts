@@ -72,7 +72,6 @@ allprojects {
 
     // allow dynamic agent loading for mockito
     jvmArgs(
-      "--enable-preview",
       "-XX:+EnableDynamicAgentLoading",
       "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"
     )
