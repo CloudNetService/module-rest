@@ -38,7 +38,6 @@ import io.netty5.handler.codec.http.HttpHeaderValues;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
-import io.netty5.handler.stream.ChunkedStream;
 import io.netty5.handler.timeout.ReadTimeoutException;
 import io.netty5.util.AttributeKey;
 import io.netty5.util.Send;
@@ -234,11 +233,10 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
         // set the chunk transfer header
         HttpUtil.setTransferEncodingChunked(netty, true);
 
-        // write the initial response to the client, use a void future as no monitoring is required
+        // write the initial response to the client, then follow with the provided body
         channel.write(new DefaultHttpResponse(netty.protocolVersion(), netty.status(), netty.headers()));
-        // write the actual content of the transfer into the channel using a progressive future
         future = channel.writeAndFlush(new HttpChunkedInput(
-          new ChunkedStream(response.bodyStream()),
+          new NettyChunkedStream(response.bodyStream()),
           new EmptyLastHttpContent(channel.bufferAllocator())));
       } else {
         // do not mark the request data as chunked
