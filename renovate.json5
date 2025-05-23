@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+  ],
+  "labels": [
+    "t: dependencies",
+  ],
+  "reviewers": [
+    "0utplay",
+    "derklaro",
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions",
+      ],
+      "groupName": "github actions",
+    },
+    {
+      "matchUpdateTypes": [
+        "patch",
+      ],
+      "matchPackageNames": [
+        "*",
+        "!gradle",
+      ],
+      "groupName": "all dependencies with patch changes",
+    },
+    {
+      "description": "Dependencies whose updates shouldn't be done automatically",
+      "matchPackageNames": [
+        "io.netty:**", // disabled until a stable version was released
+        "eu.cloudnetservice.cloudnet:**", // disabled until a stable version was released
+      ],
+      "enabled": false,
+    },
+  ],
+  "prHourlyLimit": 10,
+  "rebaseWhen": "conflicted",
+  "rebaseLabel": "s: rebase",
+  "stopUpdatingLabel": "s: stop updates",
+  "commitMessagePrefix": "chore: ",
+  "commitMessageAction": "update",
+}
