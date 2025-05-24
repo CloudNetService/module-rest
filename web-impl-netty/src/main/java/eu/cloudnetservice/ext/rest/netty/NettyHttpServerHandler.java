@@ -171,9 +171,6 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     @NonNull HttpRequest httpRequest,
     @Nullable Send<Buffer> buffer
   ) {
-    // if an opaque uri is sent to the server we reject the request immediately as it does
-    // not contain the required information to properly process the request (especially due
-    // to the lack of path information which is the base of our internal handling)
     URI uri;
     try {
       uri = URI.create(httpRequest.uri());
@@ -183,6 +180,9 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       return;
     }
 
+    // if an opaque uri is sent to the server we reject the request immediately as it does
+    // not contain the required information to properly process the request (especially due
+    // to the lack of path information which is the base of our internal handling)
     if (uri.isOpaque()) {
       NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
       return;
