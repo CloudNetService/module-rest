@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLException;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ final class NettyExceptionLogger {
   private NettyExceptionLogger() {
   }
 
-  static void handleNettyException(Throwable cause) {
+  static void handleNettyException(@NonNull Throwable cause) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Caught exception while processing rest request", cause);
       return;
