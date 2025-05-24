@@ -101,6 +101,6 @@ moduleJson {
   name = "CloudNet-Rest"
   version = project.version.toString()
   author = "CloudNetService"
-  description = "The REST module offers a CRUD REST API for cloudnet"
+  description = "Module which provides a REST API for managing resources within the CloudNet system"
   runtimeModule = true
 }
