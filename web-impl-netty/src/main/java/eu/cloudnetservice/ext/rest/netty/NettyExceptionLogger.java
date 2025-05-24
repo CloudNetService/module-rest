@@ -31,7 +31,7 @@ final class NettyExceptionLogger {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NettyExceptionLogger.class);
   private static final Pattern IGNORABLE_SOCKET_ERROR_MESSAGE = Pattern.compile(
-    "(?:connection.*(?:reset|closed|abort|broken)|broken.*pipe)", Pattern.CASE_INSENSITIVE);
+    "connection.*(?:reset|closed|abort|broken)|broken.*pipe", Pattern.CASE_INSENSITIVE);
 
   public static final FutureListener<Object> LOG_ON_FAILURE = (future -> {
     if (future.isFailed()) {
