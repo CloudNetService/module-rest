@@ -128,7 +128,7 @@ final class NettyWebSocketServerChannel implements WebSocketChannel {
 
     this.channel
       .writeAndFlush(webSocketFrame)
-      .addListener(this.channel, ChannelFutureListeners.FIRE_EXCEPTION_ON_FAILURE);
+      .addListener(this.channel, NettyExceptionLogger.LOG_ON_FAILURE);
     return this;
   }
 
