@@ -41,7 +41,7 @@ final class NettyExceptionLogger {
    * If the exception is deemed to be irrelevant in the current context, it is silently ignored.
    */
   public static final FutureListener<Object> LOG_ON_FAILURE = future -> {
-    if (future.isFailed()) {
+    if (future.isFailed() && !future.isCancelled()) {
       NettyExceptionLogger.handleConnectionException(future.cause());
     }
   };
