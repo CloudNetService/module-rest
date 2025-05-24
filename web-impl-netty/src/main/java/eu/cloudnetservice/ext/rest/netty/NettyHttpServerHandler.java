@@ -45,6 +45,7 @@ import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -173,8 +174,8 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
   ) {
     URI uri;
     try {
-      uri = URI.create(httpRequest.uri());
-    } catch (IllegalArgumentException exception) {
+      uri = new URI(httpRequest.uri());
+    } catch (URISyntaxException exception) {
       NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
       LOGGER.debug("Unable to parse request uri '{}', rejecting request", httpRequest.uri(), exception);
       return;
