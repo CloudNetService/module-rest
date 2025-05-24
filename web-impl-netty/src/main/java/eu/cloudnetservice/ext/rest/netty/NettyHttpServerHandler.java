@@ -39,11 +39,14 @@ import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
 import io.netty5.util.AttributeKey;
+import io.netty5.util.Resource;
 import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -134,7 +137,22 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       buffer = null;
     }
 
-    this.executorService.submit(() -> this.handleMessage(ctx.channel(), msg, buffer));
+    try {
+      this.executorService.submit(() -> {
+        try {
+          this.handleMessage(ctx.channel(), msg, buffer);
+        } catch (Throwable throwable) {
+          NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+          LOGGER.debug("Exception caught during processing of http request", throwable);
+        } finally {
+          Resource.dispose(buffer);
+        }
+      });
+    } catch (RejectedExecutionException exception) {
+      NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
+      LOGGER.debug("Unable to submit request to executor service, rejecting request", exception);
+      Resource.dispose(buffer);
+    }
   }
 
   /**
@@ -150,10 +168,18 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     @NonNull HttpRequest httpRequest,
     @Nullable Send<Buffer> buffer
   ) {
+    URI uri;
+    try {
+      uri = new URI(httpRequest.uri());
+    } catch (URISyntaxException exception) {
+      NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
+      LOGGER.debug("Unable to parse request uri '{}', rejecting request", httpRequest.uri(), exception);
+      return;
+    }
+
     // if an opaque uri is sent to the server we reject the request immediately as it does
     // not contain the required information to properly process the request (especially due
     // to the lack of path information which is the base of our internal handling)
-    var uri = URI.create(httpRequest.uri());
     if (uri.isOpaque()) {
       NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
       return;
