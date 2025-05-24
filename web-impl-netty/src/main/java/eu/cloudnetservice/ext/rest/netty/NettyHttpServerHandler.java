@@ -244,7 +244,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       }
 
       // add the listener that fires the exception if an error occurs during writing of the response
-      future.addListener(channel, NettyExceptionLogger.LOG_ON_FAILURE);
+      future.addListener(NettyExceptionLogger.LOG_ON_FAILURE);
       if (context.closeAfter) {
         future.addListener(channel, ChannelFutureListeners.CLOSE);
       }

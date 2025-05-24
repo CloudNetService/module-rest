@@ -16,11 +16,9 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelException;
 import io.netty5.handler.timeout.ReadTimeoutException;
-import io.netty5.util.concurrent.Future;
-import io.netty5.util.concurrent.FutureContextListener;
+import io.netty5.util.concurrent.FutureListener;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.regex.Pattern;
@@ -34,7 +32,11 @@ final class NettyExceptionLogger {
   private static final Pattern IGNORABLE_SOCKET_ERROR_MESSAGE = Pattern.compile(
     "(?:connection.*(?:reset|closed|abort|broken)|broken.*pipe)", Pattern.CASE_INSENSITIVE);
 
-  public static final LogOnFailure LOG_ON_FAILURE = new LogOnFailure();
+  public static final FutureListener<Object> LOG_ON_FAILURE = (future -> {
+    if (future.isFailed()) {
+      NettyExceptionLogger.handleNettyException(future.cause());
+    }
+  });
 
   private NettyExceptionLogger() {
   }
@@ -58,16 +60,6 @@ final class NettyExceptionLogger {
 
     if (shouldLog) {
       LOGGER.warn("Exception while processing rest request", cause);
-    }
-  }
-
-  static final class LogOnFailure implements FutureContextListener<Channel, Object> {
-
-    @Override
-    public void operationComplete(Channel channel, Future<?> future) {
-      if (future.isFailed()) {
-        NettyExceptionLogger.handleNettyException(future.cause());
-      }
     }
   }
 }
