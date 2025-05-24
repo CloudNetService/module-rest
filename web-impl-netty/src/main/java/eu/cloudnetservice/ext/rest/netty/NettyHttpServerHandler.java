@@ -40,13 +40,14 @@ import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
 import io.netty5.handler.timeout.ReadTimeoutException;
 import io.netty5.util.AttributeKey;
+import io.netty5.util.Resource;
 import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -139,14 +140,22 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       buffer = null;
     }
 
-    CompletableFuture.supplyAsync(() -> {
-      this.handleMessage(ctx.channel(), msg, buffer);
-      return null;
-    }, this.executorService).exceptionally(throwable -> {
-      NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.BAD_REQUEST);
-      LOGGER.trace("Exception caught during processing of http request", throwable);
-      return null;
-    });
+    try {
+      this.executorService.submit(() -> {
+        try {
+          this.handleMessage(ctx.channel(), msg, buffer);
+        } catch (Throwable throwable) {
+          NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.BAD_REQUEST);
+          LOGGER.trace("Exception caught during processing of http request", throwable);
+        } finally {
+          Resource.dispose(buffer);
+        }
+      });
+    } catch (RejectedExecutionException exception) {
+      NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
+      LOGGER.debug("Unable to submit request to executor service, rejecting request", exception);
+      Resource.dispose(buffer);
+    }
   }
 
   /**
