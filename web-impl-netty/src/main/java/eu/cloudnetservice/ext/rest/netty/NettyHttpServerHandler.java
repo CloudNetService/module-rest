@@ -104,7 +104,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
    */
   @Override
   public void channelExceptionCaught(@NonNull ChannelHandlerContext ctx, @NonNull Throwable cause) {
-    NettyExceptionLogger.handleNettyException(cause);
+    NettyExceptionLogger.handleConnectionException(cause);
   }
 
   /**

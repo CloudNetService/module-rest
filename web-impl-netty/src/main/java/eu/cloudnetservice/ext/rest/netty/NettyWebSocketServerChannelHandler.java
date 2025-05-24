@@ -55,7 +55,7 @@ final class NettyWebSocketServerChannelHandler extends SimpleChannelInboundHandl
    */
   @Override
   public void channelExceptionCaught(@NonNull ChannelHandlerContext ctx, @NonNull Throwable cause) {
-    NettyExceptionLogger.handleNettyException(cause);
+    NettyExceptionLogger.handleConnectionException(cause);
   }
 
   /**

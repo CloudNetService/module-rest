@@ -27,55 +27,81 @@ import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A utility class for logging exceptions that occur while processing a request.
+ *
+ * @since 1.0
+ */
 final class NettyExceptionLogger {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NettyExceptionLogger.class);
 
-  public static final FutureListener<Object> LOG_ON_FAILURE = (future -> {
+  /**
+   * A future listener that logs the exception produced by the future to which it was attached if it is relevant enough.
+   * If the exception is deemed to be irrelevant in the current context, it is silently ignored.
+   */
+  public static final FutureListener<Object> LOG_ON_FAILURE = future -> {
     if (future.isFailed()) {
-      NettyExceptionLogger.handleNettyException(future.cause());
+      NettyExceptionLogger.handleConnectionException(future.cause());
     }
-  });
+  };
 
   private NettyExceptionLogger() {
+    throw new UnsupportedOperationException();
   }
 
-  static void handleNettyException(@NonNull Throwable cause) {
+  /**
+   * Logs the given exception if it is relevant enough, silently ignoring it otherwise.
+   *
+   * @param cause the cause to log if it is relevant enough.
+   * @throws NullPointerException if the given cause is null.
+   */
+  static void handleConnectionException(@NonNull Throwable cause) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Caught exception while processing rest request", cause);
       return;
     }
 
-    var shouldLog = switch (cause) {
-      case ReadTimeoutException readTimeoutException -> false;
-      case ClosedChannelException closedChannelException -> false;
-      case SSLException sslException -> cause.getMessage() == null || !cause.getMessage().contains("closed already");
-      case ChannelException channelException ->
-        cause.getMessage() == null || !ignorableExceptionMessage(cause.getMessage());
-      case IOException ioException -> cause.getMessage() == null || !ignorableExceptionMessage(cause.getMessage());
-      default -> true;
-    };
-
-    if (shouldLog) {
-      LOGGER.warn("Exception while processing rest request", cause);
+    if (cause instanceof ClosedChannelException || cause instanceof ReadTimeoutException) {
+      // happens when trying to write to a channel that was improperly closed by the remote
+      return;
     }
+
+    var message = cause.getMessage();
+    if (message != null) {
+      var lowerMessage = message.toLowerCase(Locale.ROOT);
+      if (cause instanceof SSLException && lowerMessage.contains("closed already")) {
+        // happens when remote closes the connection while ssl-related work is in progress
+        return;
+      }
+
+      if ((cause instanceof IOException || cause instanceof ChannelException) && canIgnoreException(lowerMessage)) {
+        // some sort of socket error that can safely be ignored
+        return;
+      }
+    }
+
+    LOGGER.warn("Caught exception while processing rest request", cause);
   }
 
-  private static boolean ignorableExceptionMessage(@NonNull String message) {
-    var lowerMessage = message.toLowerCase(Locale.ROOT);
-    var broken = lowerMessage.contains("broken");
-    if (broken && lowerMessage.contains("pipe")) {
+  /**
+   * Checks if the given error associated with the given message can be safely ignored.
+   *
+   * @param message the error message to check.
+   * @return true if the error associated with the given message can be safely ignored, false otherwise.
+   * @throws NullPointerException if the given message is null.
+   */
+  private static boolean canIgnoreException(@NonNull String message) {
+    var broken = message.contains("broken");
+    if (broken && message.contains("pipe")) {
       return true;
     }
 
-    if (!lowerMessage.contains("connection")) {
+    if (!message.contains("connection")) {
       return false;
     }
 
     // connection related with an ignorable state
-    return broken
-      || lowerMessage.contains("closed")
-      || lowerMessage.contains("reset")
-      || lowerMessage.contains("abort");
+    return broken || message.contains("closed") || message.contains("reset") || message.contains("abort");
   }
 }
