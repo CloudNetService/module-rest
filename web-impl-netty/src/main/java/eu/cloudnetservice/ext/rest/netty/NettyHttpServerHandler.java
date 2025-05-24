@@ -45,6 +45,7 @@ import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -138,7 +139,14 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       buffer = null;
     }
 
-    this.executorService.submit(() -> this.handleMessage(ctx.channel(), msg, buffer));
+    CompletableFuture.supplyAsync(() -> {
+      this.handleMessage(ctx.channel(), msg, buffer);
+      return null;
+    }, this.executorService).exceptionally(throwable -> {
+      NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.BAD_REQUEST);
+      LOGGER.trace("Exception caught during processing of http request", throwable);
+      return null;
+    });
   }
 
   /**
