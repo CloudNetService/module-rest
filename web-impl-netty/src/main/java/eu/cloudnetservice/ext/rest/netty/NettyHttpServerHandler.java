@@ -38,11 +38,9 @@ import io.netty5.handler.codec.http.HttpHeaderValues;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
-import io.netty5.handler.timeout.ReadTimeoutException;
 import io.netty5.util.AttributeKey;
 import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -106,9 +104,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
    */
   @Override
   public void channelExceptionCaught(@NonNull ChannelHandlerContext ctx, @NonNull Throwable cause) {
-    if (!(cause instanceof IOException) && !(cause instanceof ReadTimeoutException)) {
-      LOGGER.error("Exception caught during processing of http request", cause);
-    }
+    NettyExceptionLogger.handleConnectionException(cause);
   }
 
   /**
@@ -248,7 +244,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       }
 
       // add the listener that fires the exception if an error occurs during writing of the response
-      future.addListener(channel, ChannelFutureListeners.FIRE_EXCEPTION_ON_FAILURE);
+      future.addListener(NettyExceptionLogger.LOG_ON_FAILURE);
       if (context.closeAfter) {
         future.addListener(channel, ChannelFutureListeners.CLOSE);
       }

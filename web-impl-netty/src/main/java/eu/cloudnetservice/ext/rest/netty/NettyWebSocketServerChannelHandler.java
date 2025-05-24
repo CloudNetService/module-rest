@@ -25,7 +25,6 @@ import io.netty5.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty5.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty5.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty5.handler.codec.http.websocketx.WebSocketFrame;
-import java.io.IOException;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +55,7 @@ final class NettyWebSocketServerChannelHandler extends SimpleChannelInboundHandl
    */
   @Override
   public void channelExceptionCaught(@NonNull ChannelHandlerContext ctx, @NonNull Throwable cause) {
-    if (!(cause instanceof IOException)) {
-      LOGGER.error("Caught exception in websocket connection", cause);
-    }
+    NettyExceptionLogger.handleConnectionException(cause);
   }
 
   /**
