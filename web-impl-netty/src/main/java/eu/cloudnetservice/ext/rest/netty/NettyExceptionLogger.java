@@ -21,7 +21,7 @@ import io.netty5.handler.timeout.ReadTimeoutException;
 import io.netty5.util.concurrent.FutureListener;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
-import java.util.regex.Pattern;
+import java.util.Locale;
 import javax.net.ssl.SSLException;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 final class NettyExceptionLogger {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NettyExceptionLogger.class);
-  private static final Pattern IGNORABLE_SOCKET_ERROR_MESSAGE = Pattern.compile(
-    "connection.*(?:reset|closed|abort|broken)|broken.*pipe", Pattern.CASE_INSENSITIVE);
 
   public static final FutureListener<Object> LOG_ON_FAILURE = (future -> {
     if (future.isFailed()) {
@@ -53,14 +51,31 @@ final class NettyExceptionLogger {
       case ClosedChannelException closedChannelException -> false;
       case SSLException sslException -> cause.getMessage() == null || !cause.getMessage().contains("closed already");
       case ChannelException channelException ->
-        cause.getMessage() == null || !IGNORABLE_SOCKET_ERROR_MESSAGE.matcher(cause.getMessage()).find();
-      case IOException ioException ->
-        cause.getMessage() == null || !IGNORABLE_SOCKET_ERROR_MESSAGE.matcher(cause.getMessage()).find();
+        cause.getMessage() == null || !ignorableExceptionMessage(cause.getMessage());
+      case IOException ioException -> cause.getMessage() == null || !ignorableExceptionMessage(cause.getMessage());
       default -> true;
     };
 
     if (shouldLog) {
       LOGGER.warn("Exception while processing rest request", cause);
     }
+  }
+
+  private static boolean ignorableExceptionMessage(@NonNull String message) {
+    var lowerMessage = message.toLowerCase(Locale.ROOT);
+    var broken = lowerMessage.contains("broken");
+    if (broken && lowerMessage.contains("pipe")) {
+      return true;
+    }
+
+    if (!lowerMessage.contains("connection")) {
+      return false;
+    }
+
+    // connection related with an ignorable state
+    return broken
+      || lowerMessage.contains("closed")
+      || lowerMessage.contains("reset")
+      || lowerMessage.contains("abort");
   }
 }
