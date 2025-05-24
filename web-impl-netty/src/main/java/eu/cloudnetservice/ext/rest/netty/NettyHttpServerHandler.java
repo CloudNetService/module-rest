@@ -145,8 +145,8 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
         try {
           this.handleMessage(ctx.channel(), msg, buffer);
         } catch (Throwable throwable) {
-          NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.BAD_REQUEST);
-          LOGGER.trace("Exception caught during processing of http request", throwable);
+          NettyHttpServerUtil.sendResponseAndClose(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+          LOGGER.debug("Exception caught during processing of http request", throwable);
         } finally {
           Resource.dispose(buffer);
         }
@@ -174,7 +174,15 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     // if an opaque uri is sent to the server we reject the request immediately as it does
     // not contain the required information to properly process the request (especially due
     // to the lack of path information which is the base of our internal handling)
-    var uri = URI.create(httpRequest.uri());
+    URI uri;
+    try {
+      uri = URI.create(httpRequest.uri());
+    } catch (IllegalArgumentException exception) {
+      NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
+      LOGGER.debug("Unable to parse request uri '{}', rejecting request", httpRequest.uri(), exception);
+      return;
+    }
+
     if (uri.isOpaque()) {
       NettyHttpServerUtil.sendResponseAndClose(channel, HttpResponseStatus.BAD_REQUEST);
       return;
