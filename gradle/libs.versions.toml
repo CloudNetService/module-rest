@@ -11,7 +11,7 @@ checkstyleTools = "10.25.1"
 junit = "5.13.1"
 mockito = "5.18.0"
 junitLauncher = "1.13.1"
-testcontainers = "1.21.1"
+testcontainers = "1.21.2"
 
 # compile time processing
 lombok = "1.18.38"
