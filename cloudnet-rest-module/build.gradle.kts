@@ -22,7 +22,7 @@ plugins {
 }
 
 repositories {
-  maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+  maven("https://central.sonatype.com/repository/maven-snapshots/")
 }
 
 dependencies {
@@ -55,8 +55,8 @@ dependencies {
   compileOnly(libs.logbackCore)
   compileOnly(libs.logbackClassic)
 
-  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC12-SNAPSHOT")
-  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC12-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC13-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC13-SNAPSHOT")
 }
 
 tasks.withType<Test> {
