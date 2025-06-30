@@ -22,6 +22,7 @@ plugins {
 }
 
 repositories {
+  maven("https://central.sonatype.com/repository/maven-snapshots/")
   maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
