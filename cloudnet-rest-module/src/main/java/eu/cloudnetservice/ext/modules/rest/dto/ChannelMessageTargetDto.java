@@ -17,7 +17,6 @@
 package eu.cloudnetservice.ext.modules.rest.dto;
 
 import eu.cloudnetservice.driver.channel.ChannelMessageTarget;
-import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 
@@ -26,24 +25,22 @@ public final class ChannelMessageTargetDto implements Dto<ChannelMessageTarget> 
   @NotNull
   private final ChannelMessageTarget.Type type;
   private final String name;
-  private final ServiceEnvironmentType environment;
 
-  public ChannelMessageTargetDto(
-    ChannelMessageTarget.Type type,
-    String name,
-    ServiceEnvironmentType environment
-  ) {
+  public ChannelMessageTargetDto(ChannelMessageTarget.Type type, String name) {
     this.type = type;
     this.name = name;
-    this.environment = environment;
   }
 
   @Override
   public @NonNull ChannelMessageTarget toEntity() {
-    if (this.type == null) {
-      return ChannelMessageTarget.environment(this.environment);
-    }
-
-    return ChannelMessageTarget.of(this.type, this.name);
+    return switch (this.type) {
+      case ALL -> ChannelMessageTarget.all();
+      case NODE -> this.name == null ? ChannelMessageTarget.allNodes() : ChannelMessageTarget.node(this.name);
+      case SERVICE -> this.name == null ? ChannelMessageTarget.allServices() : ChannelMessageTarget.service(this.name);
+      case SERVICES_BY_TASK -> ChannelMessageTarget.servicesByTask(this.name);
+      case SERVICES_BY_GROUP -> ChannelMessageTarget.servicesByGroup(this.name);
+      case SERVICES_BY_ENV -> ChannelMessageTarget.servicesByEnvironment(this.name);
+      case SERVICES_WITH_PROPERTY -> ChannelMessageTarget.servicesWithProperty(this.name);
+    };
   }
 }
