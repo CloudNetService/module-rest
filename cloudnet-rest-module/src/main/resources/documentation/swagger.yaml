@@ -227,7 +227,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_read`
           - `cloudnet_rest:user_get_all`
-      operationId: user
       responses:
         '200':
           description: All existing rest users
@@ -256,7 +255,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:user_write`
           - `cloudnet_rest:user_create`
-      operationId: user
       requestBody:
         required: true
         description: The rest user to create
@@ -401,7 +399,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_read`
           - `cloudnet_rest:cluster_node_list`
-      operationId: cluster
       responses:
         '200':
           description: OK
@@ -438,7 +435,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_write` 
           - `cloudnet_rest:cluster_node_update`
-      operationId: clusterUpdate
       responses:
         '204':
           description: The node was updated successfully
@@ -469,7 +465,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_write`
           - `cloudnet_rest:cluster_node_create`
-      operationId: clusterCreate
       responses:
         '201':
           description: The new node was created successfully
@@ -497,7 +492,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_read`
           - `cloudnet_rest:cluster_node_get`
-      operationId: clusterInfo
       responses:
         '200':
           description: OK
@@ -525,7 +519,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_write`
           - `cloudnet_rest:cluster_node_delete`
-      operationId: clusterDelete
       responses:
         '204':
           description: The node configuration entry was deleted successfully
@@ -566,7 +559,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_write`
           - `cloudnet_rest:cluster_node_command`
-      operationId: clusterCommand
       responses:
         '200':
           description: The command was executed successfully
@@ -610,7 +602,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:cluster_write`
           - `cloudnet_rest:cluster_node_change_draining`
-      operationId: clusterCommand
       responses:
         '202':
           description: The draining state was set successfully
@@ -635,7 +626,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:node_read`
           - `cloudnet_rest:node_info`
-      operationId: generalInfo
       responses:
         '200':
           description: Information about the node the request was sent to
@@ -661,7 +651,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:node_read`
           - `cloudnet_rest:node_ping`
-      operationId: nodePing
       responses:
         '204':
           description: The rest api is running and responding
@@ -722,8 +711,12 @@ paths:
             Whether to send the cached log lines as plain text or as ansi formatted text.
             - `raw`: The log lines are sent as plain text
             - `ansi`: The log lines are sent as ansi formatted text
-            
-            If no value is provided the default value is `raw`.
+          schema:
+            type: string
+            enum:
+              - raw
+              - ansi
+            default: raw
       summary: Get the cached log lines of the node the request is sent to
       description: |
         Based on the requested formatting the log lines are either returned as text only, where no color and formatting
@@ -833,7 +826,6 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:database_read`
           - `cloudnet_rest:database_list`
-      operationId: listDatabase
       responses:
         '200':
           description: All database names.
@@ -3647,8 +3639,7 @@ components:
         secret:
           type: string
           examples:
-            - "MTcyMDgxMDM5OTI3NTowMThmZThkOS0zYTFmLTc5ODAtYWE5OC04ODg5YTA5MWY4OWU6Y2xvdWRuZXRfcmVzdDpzZXJ2aWNlX3JlYWQ=
-            .3ea1a7e8d81d1d28de86f378fe8c67e0c927d1bae56f915c6cb91733b62e15c5"
+            - "MTcyMDgxMDM5OTI3NTowMThmZThkOS0zYTFmLTc5ODAtYWE5OC04ODg5YTA5MWY4OWU6Y2xvdWRuZXRfcmVzdDpzZXJ2aWNlX3JlYWQ=.3ea1a7e8d81d1d28de86f378fe8c67e0c927d1bae56f915c6cb91733b62e15c5"
         scopes:
           type: array
           examples:
@@ -4513,6 +4504,28 @@ components:
               - 1500
         eventReceivers:
           type: object
+          propertyNames:
+            type: string
+            enum:
+              - CREATED
+              - DEFERRED
+              - FAILED
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/ChannelMessageTarget'
+          examples:
+            - CREATED:
+                - type: 'SERVICE'
+                  name: null
+              DEFERRED:
+                - type: 'NODE'
+                  name: 'Node-b5a4c45b'
+              FAILED:
+                - type: 'SERVICE'
+                  name: 'Lobby-1'
+                - type: 'SERVICES_BY_TASK'
+                  name: 'BedWars'
     ServiceCreateResult:
       type: object
       properties:
@@ -4753,3 +4766,27 @@ components:
           type: string
           examples:
             - Blizzard
+    ChannelMessageTarget:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - ALL
+            - NODE
+            - SERVICE
+            - SERVICES_BY_TASK
+            - SERVICES_BY_GROUP
+            - SERVICES_BY_ENV
+            - SERVICES_WITH_PROPERTY
+        name:
+          type:
+            - string
+            - "null"
+          examples:
+            - 'Lobby-1'
+            - 'Node-b5a4c45b'
+          description: >-
+            The name of the target to send the channel message to. Can be null for type 'NODE' and 'SERVICE'. In this
+            case the channel message is sent to all nodes and all services respectively. If provided in case of type
+            'ALL' the name is ignored. A name must be given for all other target types.
