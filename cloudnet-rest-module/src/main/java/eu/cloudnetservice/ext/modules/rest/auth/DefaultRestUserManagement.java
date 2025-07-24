@@ -22,7 +22,6 @@ import com.github.benmanes.caffeine.cache.Scheduler;
 import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
-import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.node.database.LocalDatabase;
@@ -38,14 +37,14 @@ import org.slf4j.LoggerFactory;
 
 public final class DefaultRestUserManagement implements RestUserManagement {
 
+  public static final String REST_USER_INVALIDATE = "rest_user_invalidate";
+  public static final String REST_USER_MANAGEMENT_CHANNEL = "rest_user_management_channel";
+
   private static final String REST_USER_DB_NAME = "cloudnet_rest_users";
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRestUserManagement.class);
 
   private final LocalDatabase localDatabase;
   private final LoadingCache<UUID, RestUser> restUserCache;
-
-  public static final String REST_USER_INVALIDATE = "rest_user_invalidate";
-  public static final String REST_USER_MANAGEMENT_CHANNEL = "rest_user_management_channel";
 
   public DefaultRestUserManagement() {
     this(InjectionLayer.ext().instance(NodeDatabaseProvider.class));
@@ -170,8 +169,7 @@ public final class DefaultRestUserManagement implements RestUserManagement {
       .targetNodes()
       .message(REST_USER_INVALIDATE)
       .channel(REST_USER_MANAGEMENT_CHANNEL)
-      .buffer(DataBuf.empty().writeUniqueId(uniqueId))
-      .build()
+      .build(buffer -> buffer.writeUniqueId(uniqueId))
       .send();
   }
 }
