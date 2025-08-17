@@ -1,36 +1,36 @@
-name: "Build"
-
+name: "CI"
 on:
   push:
     branches: [ "**" ]
     tags-ignore: [ "**" ]
+  schedule:
+    - cron: "00 2 * * *"
   pull_request:
   workflow_dispatch:
 
 concurrency:
   cancel-in-progress: true
-  group: build-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
 
 permissions:
-  issues: read
   checks: write
   contents: read
   pull-requests: write
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
-    name: Run Build
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup java
         uses: actions/setup-java@v4
         with:
           java-version: 24
           check-latest: true
-          distribution: 'zulu'
+          distribution: "zulu"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -38,9 +38,13 @@ jobs:
           add-job-summary: always
           cache-cleanup: on-success
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          # automatically publishes build scans for the main branch
+          build-scan-publish: ${{ github.ref == 'refs/heads/main' }}
+          build-scan-terms-of-use-agree: yes
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
 
-      - name: Execute build and tests
-        run: ./gradlew build test shadowJar --stacktrace
+      - name: Run build
+        run: ./gradlew build --stacktrace
 
       - name: Publish test summary
         if: ${{ always() }}
