@@ -40,7 +40,7 @@ import lombok.NonNull;
  */
 public final class RequestBodyProcessor implements HttpAnnotationProcessor {
 
-  private static final Class<?>[] ALLOWED_BODY_TYPES = new Class[]{
+  private static final Class<?>[] ALLOWED_BODY_TYPES = new Class<?>[]{
     byte[].class,
     String.class,
     Reader.class,

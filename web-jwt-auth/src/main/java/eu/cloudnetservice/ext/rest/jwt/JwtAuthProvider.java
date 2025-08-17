@@ -159,7 +159,7 @@ public class JwtAuthProvider implements AuthProvider {
         var tokenType = token.getPayload().get("type", String.class);
 
         // extract the scopes from the jwt and convert it to a set for the wrapped user
-        //noinspection unchecked
+        @SuppressWarnings("unchecked")
         var existingScopes = (List<String>) token.getPayload().getOrDefault("scopes", List.of());
         var scopesCopy = Set.copyOf(existingScopes);
 

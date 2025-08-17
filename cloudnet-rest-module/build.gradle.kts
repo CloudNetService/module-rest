@@ -66,8 +66,6 @@ tasks.withType<Test> {
 tasks.withType<JavaCompile> {
   sourceCompatibility = JavaVersion.VERSION_24.toString()
   targetCompatibility = JavaVersion.VERSION_24.toString()
-
-  options.compilerArgs.add("-Xlint:-preview")
   options.compilerArgs.add("--enable-preview")
 }
 

@@ -39,7 +39,7 @@ public class HttpHandleException extends RuntimeException implements IntoRespons
   @Serial
   private static final long serialVersionUID = 2647591868821053340L;
 
-  protected final IntoResponse<?> response;
+  protected final transient IntoResponse<?> response;
 
   /**
    * Constructs a new http handle exception. This exception type allows to be thrown in case of any handling exception,

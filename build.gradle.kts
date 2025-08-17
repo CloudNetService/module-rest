@@ -15,6 +15,8 @@
  */
 
 import com.diffplug.gradle.spotless.SpotlessExtension
+import com.diffplug.spotless.LineEnding
+import java.nio.charset.StandardCharsets
 
 plugins {
   alias(libs.plugins.spotless)
@@ -24,8 +26,6 @@ plugins {
 allprojects {
   version = "0.4.0-SNAPSHOT"
   group = "eu.cloudnetservice.ext"
-
-  defaultTasks("build", "shadowJar")
 
   apply(plugin = "signing")
   apply(plugin = "checkstyle")
@@ -79,16 +79,29 @@ allprojects {
     // always pass down all given system properties
     systemProperties(System.getProperties().mapKeys { it.key.toString() })
     systemProperty("io.netty5.noUnsafe", "true")
+
+    // forces the re-run of tests everytime the task is executed
+    outputs.upToDateWhen { false }
   }
 
-  tasks.withType<JavaCompile>().configureEach {
+  tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.VERSION_21.toString()
     targetCompatibility = JavaVersion.VERSION_21.toString()
-    // options
+
     options.encoding = "UTF-8"
     options.isIncremental = true
-    // we are aware that those are there, but we only do that if there is no other way we can use - so please keep the terminal clean!
-    options.compilerArgs = mutableListOf("-Xlint:-deprecation,-unchecked")
+
+    options.compilerArgs.add("-proc:none")
+    options.compilerArgs.addAll(
+      listOf(
+        "-Xlint:all",         // enable all warnings
+        "-Xlint:-preview",    // reduce warning size for the following warning types
+        "-Xlint:-unchecked",
+        "-Xlint:-classfile",
+        "-Xlint:-processing",
+        "-Xlint:-deprecation",
+      )
+    )
   }
 
   tasks.withType<Checkstyle> {
@@ -103,6 +116,8 @@ allprojects {
 
   extensions.configure<SpotlessExtension> {
     java {
+      lineEndings = LineEnding.UNIX
+      encoding = StandardCharsets.UTF_8
       licenseHeaderFile(rootProject.file("LICENSE_HEADER"))
     }
   }

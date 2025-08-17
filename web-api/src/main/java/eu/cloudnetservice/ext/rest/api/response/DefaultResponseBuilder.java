@@ -193,8 +193,8 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
     return this;
   }
 
+  @SuppressWarnings("unchecked")
   private @NonNull B self() {
-    //noinspection unchecked
     return (B) this;
   }
 }

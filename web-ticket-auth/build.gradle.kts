@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-
 dependencies {
   compileOnlyApi(projects.webApi)
-
   testImplementation(projects.webApi)
 }
