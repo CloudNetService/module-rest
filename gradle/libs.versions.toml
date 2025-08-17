@@ -8,9 +8,9 @@ nexusPublish = "2.0.0"
 checkstyleTools = "11.0.0"
 
 # testing
-junit = "5.13.3"
+junit = "5.13.4"
 mockito = "5.19.0"
-junitLauncher = "1.13.3"
+junitLauncher = "1.13.4"
 testcontainers = "1.21.3"
 
 # compile time processing
@@ -18,7 +18,7 @@ lombok = "1.18.38"
 
 # runtime dependencies
 gson = "2.13.1"
-jjwt = "0.12.6"
+jjwt = "0.12.7"
 guava = "33.4.8-jre"
 annotations = "26.0.2"
 unirest = "4.5.0"
