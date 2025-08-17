@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 CloudNetService team & contributors
+ * Copyright 2019-present CloudNetService team & contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ allprojects {
   }
 
   tasks.withType<Jar> {
-    from(rootProject.file("LICENSE"))
+    from(rootProject.file("license.txt"))
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
   }
 
@@ -118,7 +118,7 @@ allprojects {
     java {
       lineEndings = LineEnding.UNIX
       encoding = StandardCharsets.UTF_8
-      licenseHeaderFile(rootProject.file("LICENSE_HEADER"))
+      licenseHeaderFile(rootProject.file("license_header.txt"))
     }
   }
 }
