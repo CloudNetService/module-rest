@@ -120,6 +120,6 @@ public class BasicAuthProvider implements AuthProvider {
   }
 
   public boolean validatePassword(@NonNull RestUser user, byte[] passwordBytes) {
-    return true;
+    return false;
   }
 }
