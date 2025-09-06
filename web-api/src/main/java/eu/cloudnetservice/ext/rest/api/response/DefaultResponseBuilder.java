@@ -19,12 +19,10 @@ package eu.cloudnetservice.ext.rest.api.response;
 import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
+import eu.cloudnetservice.ext.rest.api.util.HttpDateUtil;
 import java.net.URI;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,13 +36,6 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0
  */
 public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>> implements Response.Builder<T, B> {
-
-  // RFC 9110 Section 8.8.2
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified#syntax
-  private static final ZoneId GMT = ZoneId.of("GMT");
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
-    .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US)
-    .withZone(GMT);
 
   protected T body;
   protected HttpResponseCode responseCode = HttpResponseCode.OK;
@@ -139,9 +130,8 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
    */
   @Override
   public @NonNull B lastModified(@NonNull ZonedDateTime lastModified) {
-    return this.header(
-      HttpHeaders.LAST_MODIFIED,
-      DATE_FORMATTER.format(lastModified.withZoneSameInstant(GMT)));
+    var formattedDate = HttpDateUtil.formatAsHttpDate(lastModified);
+    return this.header(HttpHeaders.LAST_MODIFIED, formattedDate);
   }
 
   /**
@@ -149,7 +139,8 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
    */
   @Override
   public @NonNull B lastModified(@NonNull Instant lastModified) {
-    return this.lastModified(ZonedDateTime.ofInstant(lastModified, GMT));
+    var formattedDate = HttpDateUtil.formatAsHttpDate(lastModified);
+    return this.header(HttpHeaders.LAST_MODIFIED, formattedDate);
   }
 
   /**
