@@ -87,7 +87,6 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<ShadowJar> {
-  mergeServiceFiles()
   dependencies {
     include {
       it.moduleGroup.startsWith("eu.cloudnetservice")
