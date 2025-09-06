@@ -26,6 +26,7 @@ import io.netty5.handler.codec.http.HttpRequestDecoder;
 import io.netty5.handler.codec.http.HttpResponseEncoder;
 import io.netty5.handler.ssl.SslContext;
 import io.netty5.handler.stream.ChunkedWriteHandler;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
  * @since 1.0
  */
 final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
+
+  static final Duration MAX_CONNECTION_IDLE_TIME = Duration.ofSeconds(30);
 
   private final SslContext serverSslContext;
   private final HostAndPort listenerAddress;
@@ -88,7 +91,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
     }
 
     ch.pipeline()
-      .addLast("read-timeout-handler", new NettyIdleStateHandler(30))
+      .addLast("read-timeout-handler", new NettyIdleStateHandler(MAX_CONNECTION_IDLE_TIME.toSeconds()))
       .addLast("http-request-decoder", new HttpRequestDecoder())
       .addLast("http-request-decompressor", new HttpContentDecompressor())
       .addLast("http-response-encoder", new HttpResponseEncoder())

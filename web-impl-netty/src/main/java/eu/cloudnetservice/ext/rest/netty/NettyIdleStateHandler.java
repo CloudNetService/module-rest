@@ -41,7 +41,7 @@ final class NettyIdleStateHandler extends IdleStateHandler {
    *
    * @param timeoutSeconds the seconds a client is allowed to idle before a forced disconnect.
    */
-  public NettyIdleStateHandler(int timeoutSeconds) {
+  public NettyIdleStateHandler(long timeoutSeconds) {
     super(0, 0, timeoutSeconds, TimeUnit.SECONDS);
   }
 

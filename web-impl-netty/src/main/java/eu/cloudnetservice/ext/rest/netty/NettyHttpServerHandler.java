@@ -25,6 +25,7 @@ import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.tree.HttpHandlerConfigPair;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
+import eu.cloudnetservice.ext.rest.api.util.HttpDateUtil;
 import io.netty5.buffer.Buffer;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelFutureListeners;
@@ -34,7 +35,6 @@ import io.netty5.handler.codec.http.DefaultHttpResponse;
 import io.netty5.handler.codec.http.EmptyLastHttpContent;
 import io.netty5.handler.codec.http.FullHttpRequest;
 import io.netty5.handler.codec.http.HttpChunkedInput;
-import io.netty5.handler.codec.http.HttpHeaderValues;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
@@ -44,6 +44,7 @@ import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -243,28 +244,30 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     if (!context.cancelSendResponse) {
       var response = context.httpServerResponse;
 
-      // append the keep-alive header if requested
+      // append a header when the server responded to the request
       var netty = response.httpResponse;
-      if (!context.closeAfter) {
-        netty.headers().set(HttpHeaders.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+      var currentDate = HttpDateUtil.formatAsHttpDate(Instant.now());
+      netty.headers().set(HttpHeaders.DATE, currentDate);
+
+      // append the keep-alive information as headers, if needed
+      var keepAlive = !context.closeAfter;
+      HttpUtil.setKeepAlive(netty, keepAlive);
+      if (keepAlive) {
+        var keepAliveTimeout = NettyHttpServerInitializer.MAX_CONNECTION_IDLE_TIME.toSeconds();
+        netty.headers().set(HttpHeaders.KEEP_ALIVE, String.format("timeout=%s", keepAliveTimeout));
       }
 
-      // transfer the data chunked to the client if a response stream was set, indicating a huge data chunk
       Future<Void> future;
       if (response.bodyStream() != null) {
-        // set the chunk transfer header
+        // transfer the data chunked to the client
         HttpUtil.setTransferEncodingChunked(netty, true);
-
-        // write the initial response to the client, then follow with the provided body
         channel.write(new DefaultHttpResponse(netty.protocolVersion(), netty.status(), netty.headers()));
         future = channel.writeAndFlush(new HttpChunkedInput(
           new NettyChunkedStream(response.bodyStream()),
           new EmptyLastHttpContent(channel.bufferAllocator())));
       } else {
-        // do not mark the request data as chunked
+        // transfer the data in one single go to the client
         HttpUtil.setTransferEncodingChunked(netty, false);
-
-        // Set the content length of the response and transfer the data to the client
         HttpUtil.setContentLength(netty, netty.payload().readableBytes());
         future = channel.writeAndFlush(netty);
       }
