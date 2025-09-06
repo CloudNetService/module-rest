@@ -61,7 +61,7 @@ allprojects {
 
   tasks.withType<Jar> {
     from(rootProject.file("license.txt"))
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   }
 
   tasks.withType<Test> {
