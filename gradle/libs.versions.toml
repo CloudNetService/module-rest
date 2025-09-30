@@ -9,7 +9,7 @@ checkstyleTools = "11.0.1"
 
 # testing
 junit = "6.0.0"
-mockito = "5.19.0"
+mockito = "5.20.0"
 testcontainers = "1.21.3"
 
 # compile time processing
