@@ -8,9 +8,8 @@ nexusPublish = "2.0.0"
 checkstyleTools = "11.0.1"
 
 # testing
-junit = "5.13.4"
+junit = "6.0.0"
 mockito = "5.19.0"
-junitLauncher = "1.13.4"
 testcontainers = "1.21.3"
 
 # compile time processing
@@ -64,7 +63,7 @@ jjwtGson = { group = "io.jsonwebtoken", name = "jjwt-gson", version.ref = "jjwt"
 junitApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junitParams = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
 junitEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
-junitLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitLauncher" }
+junitLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
 
 # general testing
 mockito = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
