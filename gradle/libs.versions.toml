@@ -25,7 +25,7 @@ caffeine = "3.2.2"
 
 # logging
 slf4j = "2.0.17"
-logback = "1.5.18"
+logback = "1.5.19"
 
 # validation
 expressly = "6.0.0"
