@@ -55,8 +55,8 @@ dependencies {
   compileOnly(libs.logbackCore)
   compileOnly(libs.logbackClassic)
 
-  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC14-SNAPSHOT")
-  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC14-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC15-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC15-SNAPSHOT")
 }
 
 tasks.withType<Test> {
@@ -64,21 +64,21 @@ tasks.withType<Test> {
 }
 
 tasks.withType<JavaCompile> {
-  sourceCompatibility = JavaVersion.VERSION_24.toString()
-  targetCompatibility = JavaVersion.VERSION_24.toString()
+  sourceCompatibility = JavaVersion.VERSION_25.toString()
+  targetCompatibility = JavaVersion.VERSION_25.toString()
   options.compilerArgs.add("--enable-preview")
 }
 
 tasks.withType<Javadoc> {
   val options = options as? StandardJavadocDocletOptions ?: return@withType
-  options.addStringOption("-release", "24")
+  options.addStringOption("-release", "25")
   options.addBooleanOption("-enable-preview", true)
 }
 
 extensions.configure<JavaPluginExtension> {
   toolchain {
     vendor = JvmVendorSpec.AZUL
-    languageVersion = JavaLanguageVersion.of(24)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }
 
