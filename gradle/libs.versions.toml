@@ -10,7 +10,7 @@ checkstyleTools = "11.1.0"
 # testing
 junit = "6.0.0"
 mockito = "5.20.0"
-testcontainers = "1.21.3"
+testcontainers = "2.0.1"
 
 # compile time processing
 lombok = "1.18.42"
