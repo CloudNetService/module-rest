@@ -33,7 +33,7 @@ jobs:
           distribution: "zulu"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           add-job-summary: always
           cache-cleanup: on-success
@@ -57,7 +57,7 @@ jobs:
         run: cp cloudnet-rest-module/build/libs/cloudnet-rest.jar cloudnet-rest.jar
 
       - name: Upload artifact jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: CloudNet-Rest
           path: cloudnet-rest.jar

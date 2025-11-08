@@ -5,12 +5,12 @@ shadow = "9.2.2"
 juppiter = "0.5.0-beta.2"
 spotless = "8.0.0"
 nexusPublish = "2.0.0"
-checkstyleTools = "11.1.0"
+checkstyleTools = "12.1.1"
 
 # testing
-junit = "6.0.0"
+junit = "6.0.1"
 mockito = "5.20.0"
-testcontainers = "1.21.3"
+testcontainers = "2.0.1"
 
 # compile time processing
 lombok = "1.18.42"
@@ -21,16 +21,16 @@ jjwt = "0.13.0"
 guava = "33.5.0-jre"
 annotations = "26.0.2-1"
 unirest = "4.5.1"
-caffeine = "3.2.2"
+caffeine = "3.2.3"
 
 # logging
 slf4j = "2.0.17"
-logback = "1.5.19"
+logback = "1.5.20"
 
 # validation
 expressly = "6.0.0"
 jakartaValidationApi = "3.1.1"
-hibernateValidator = "9.0.1.Final"
+hibernateValidator = "9.1.0.Final"
 
 # netty stuff
 netty = "2025.11.08-3a259e91"
@@ -70,7 +70,7 @@ mockito = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref =
 
 # testcontainers
 testContainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
-testContainersJunit = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
+testContainersJunit = { group = "org.testcontainers", name = "testcontainers-junit-jupiter", version.ref = "testcontainers" }
 
 # validation
 expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
