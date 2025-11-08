@@ -253,7 +253,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       netty.headers().set(HttpHeaders.DATE, currentDate);
 
       // append the keep-alive information as headers, if needed
-      var keepAlive = !context.closeAfter;
+      var keepAlive = !context.closeAfter && HttpUtil.isKeepAlive(httpRequest);
       HttpUtil.setKeepAlive(netty, keepAlive);
       if (keepAlive) {
         var keepAliveTimeout = NettyHttpServerInitializer.MAX_CONNECTION_IDLE_TIME.toSeconds();
