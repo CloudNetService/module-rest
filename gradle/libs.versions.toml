@@ -30,7 +30,7 @@ logback = "1.5.19"
 # validation
 expressly = "6.0.0"
 jakartaValidationApi = "3.1.1"
-hibernateValidator = "9.0.1.Final"
+hibernateValidator = "9.1.0.Final"
 
 # netty stuff
 netty = "5.0.0.Alpha6-SNAPSHOT"
