@@ -43,6 +43,7 @@ import io.netty5.util.AttributeKey;
 import io.netty5.util.Resource;
 import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
+import io.netty5.util.internal.SilentDispose;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -242,6 +243,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     }
 
     // check if the response set in the context should actually be transferred to the client
+    var closeResponse = true;
     if (!context.cancelSendResponse) {
       var response = context.httpServerResponse;
 
@@ -271,6 +273,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
         HttpUtil.setTransferEncodingChunked(netty, false);
         HttpUtil.setContentLength(netty, netty.payload().readableBytes());
         future = channel.writeAndFlush(netty);
+        closeResponse = false; // already done by http content encoder
       }
 
       // add the listener that fires the exception if an error occurs during writing of the response
@@ -278,6 +281,11 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       if (context.closeAfter) {
         future.addListener(channel, ChannelFutureListeners.CLOSE);
       }
+    }
+
+    if (closeResponse) {
+      var response = context.httpServerResponse.httpResponse;
+      SilentDispose.tryPropagatingDispose(response);
     }
   }
 
