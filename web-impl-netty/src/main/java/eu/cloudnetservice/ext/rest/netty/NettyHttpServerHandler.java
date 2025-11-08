@@ -38,6 +38,7 @@ import io.netty5.handler.codec.http.HttpChunkedInput;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
+import io.netty5.handler.stream.ChunkedStream;
 import io.netty5.util.AttributeKey;
 import io.netty5.util.Resource;
 import io.netty5.util.Send;
@@ -263,7 +264,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
         HttpUtil.setTransferEncodingChunked(netty, true);
         channel.write(new DefaultHttpResponse(netty.protocolVersion(), netty.status(), netty.headers()));
         future = channel.writeAndFlush(new HttpChunkedInput(
-          new NettyChunkedStream(response.bodyStream()),
+          new ChunkedStream(response.bodyStream()),
           new EmptyLastHttpContent(channel.bufferAllocator())));
       } else {
         // transfer the data in one single go to the client

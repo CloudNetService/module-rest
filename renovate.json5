@@ -30,7 +30,6 @@
     {
       "description": "Dependencies whose updates shouldn't be done automatically",
       "matchPackageNames": [
-        "io.netty:**", // disabled until a stable version was released
         "eu.cloudnetservice.cloudnet:**", // disabled until a stable version was released
       ],
       "enabled": false,
