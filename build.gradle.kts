@@ -24,7 +24,7 @@ plugins {
 }
 
 allprojects {
-  version = "0.5.0"
+  version = "0.5.1"
   group = "eu.cloudnetservice.ext"
 
   apply(plugin = "signing")
