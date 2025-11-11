@@ -55,8 +55,8 @@ dependencies {
   compileOnly(libs.logbackCore)
   compileOnly(libs.logbackClassic)
 
-  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC15-SNAPSHOT")
-  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC15-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:node-impl:4.0.0-RC16-SNAPSHOT")
+  compileOnly("eu.cloudnetservice.cloudnet:bridge-impl:4.0.0-RC16-SNAPSHOT")
 }
 
 tasks.withType<Test> {
