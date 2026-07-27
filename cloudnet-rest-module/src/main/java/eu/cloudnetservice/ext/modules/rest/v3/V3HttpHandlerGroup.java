@@ -45,7 +45,7 @@ public final class V3HttpHandlerGroup {
   }
 
   @RequestHandler(path = "/api/v3/group")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_cloudnet_rest:group_read", "cloudnet_rest:group_list"})
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_read", "cloudnet_rest:group_list"})
   public @NonNull IntoResponse<?> handleGroupListRequest() {
     return JsonResponse.builder().body(Map.of("groups", this.groupProvider.groupConfigurations()));
   }
