@@ -858,7 +858,7 @@ paths:
           - `cloudnet_rest:database_delete`
       responses:
         '204':
-          description: Successful deletion of the entry from the database.
+          description: Successful deletion of the database.
         '400':
           $ref: '#/components/responses/Problem'
         '401':
