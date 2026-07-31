@@ -130,9 +130,9 @@ public final class V3HttpHandlerDatabase {
     return JsonResponse.builder().body(database.find(filter));
   }
 
-  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.DELETE)
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_delete"})
-  public @NonNull IntoResponse<?> handleDeleteRequest(
+  @RequestHandler(path = "/api/v3/database/{name}/document", method = HttpMethod.DELETE)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_document_delete"})
+  public @NonNull IntoResponse<?> handleDocumentDeleteRequest(
     @NonNull @RequestPathParam("name") String name,
     @NonNull @FirstRequestQueryParam("key") String key
   ) {
@@ -140,11 +140,25 @@ public final class V3HttpHandlerDatabase {
     if (database.delete(key)) {
       return HttpResponseCode.NO_CONTENT;
     }
-
     return ProblemDetail.builder()
       .status(HttpResponseCode.OK)
       .type("database-delete-failed")
       .title("Database Delete Failed")
       .detail("The database had nothing to delete. The key was not associated with any data.");
+  }
+
+  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.DELETE)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_delete"})
+  public @NonNull IntoResponse<?> handleDatabaseDeleteRequest(
+    @NonNull @RequestPathParam("name") String name
+  ) {
+    if (this.databaseProvider.deleteDatabase(name)) {
+      return HttpResponseCode.NO_CONTENT;
+    }
+    return ProblemDetail.builder()
+      .status(HttpResponseCode.NOT_FOUND)
+      .type("database-delete-failed")
+      .title("Database Delete Failed")
+      .detail("The provided database was not found.");
   }
 }
