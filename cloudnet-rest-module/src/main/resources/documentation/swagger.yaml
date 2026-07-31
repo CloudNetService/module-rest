@@ -848,6 +848,30 @@ paths:
         required: true
         schema:
           type: string
+    delete:
+      tags:
+        - Database
+      summary: Deletes the database
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:database_write`
+          - `cloudnet_rest:database_delete`
+      responses:
+        '204':
+          description: Successful deletion of the entry from the database.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}/document:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
     post:
       requestBody:
         required: true
@@ -893,7 +917,7 @@ paths:
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:database_write`
-          - `cloudnet_rest:database_delete`
+          - `cloudnet_rest:database_document_delete`
       responses:
         '204':
           description: Successful deletion of the entry from the database.
@@ -1027,7 +1051,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /database/{name}/get:
+  /database/{name}/document/get:
     get:
       tags:
         - Database
@@ -1065,7 +1089,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /database/{name}/find:
+  /database/{name}/document/find:
     get:
       requestBody:
         required: true
@@ -1085,7 +1109,7 @@ paths:
           required: true
           schema:
             type: string
-      summary: Get a specific document from a database
+      summary: Find a specific document in a database
       description: |
         Gets all documents out of the provided database, by using the provided
         search filter.
