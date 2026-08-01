@@ -111,7 +111,7 @@ public final class V3HttpHandlerDatabase {
     }
   }
 
-  @RequestHandler(path = "/api/v3/database/{name}/document/get")
+  @RequestHandler(path = "/api/v3/database/{name}/document")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_document_get"})
   public @NonNull IntoResponse<?> handleGetRequest(
     @NonNull @RequestPathParam("name") String name,
