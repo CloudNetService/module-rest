@@ -872,6 +872,43 @@ paths:
         required: true
         schema:
           type: string
+    get:
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      summary: Get a specific document from a database
+      description: |
+        Get the document out of the provided database by using the provided key.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_document_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    examples:
+                      - Name: Peter
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
     post:
       requestBody:
         required: true
@@ -921,6 +958,52 @@ paths:
       responses:
         '204':
           description: Successful deletion of the entry from the database.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}/document/find:
+    get:
+      requestBody:
+        required: true
+        description: Defines the search filter to get the documents
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  examples:
+                    - Signs: 0utplayyyy
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: Find a specific document in a database
+      description: |
+        Gets all documents out of the provided database, by using the provided
+        search filter.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:database_read`
+          - `cloudnet_rest:database_document_find`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  examples:
+                    - Name: Peter
+                    - LastName: Parker
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -1047,90 +1130,6 @@ paths:
                     type: boolean
                     examples:
                       - true
-        '401':
-          $ref: '#/components/responses/Problem'
-        '403':
-          $ref: '#/components/responses/Problem'
-  /database/{name}/document/get:
-    get:
-      tags:
-        - Database
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: key
-          in: query
-          required: true
-          schema:
-            type: string
-      summary: Get a specific document from a database
-      description: |
-        Get the document out of the provided database by using the provided key.
-
-        One of the following scopes is needed to execute the request:
-          - `cloudnet_rest:database_read`
-          - `cloudnet_rest:database_get`
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: object
-                    examples:
-                      - Name: Peter
-        '401':
-          $ref: '#/components/responses/Problem'
-        '403':
-          $ref: '#/components/responses/Problem'
-  /database/{name}/document/find:
-    get:
-      requestBody:
-        required: true
-        description: Defines the search filter to get the documents
-        content:
-          application/json:
-            schema:
-              oneOf:
-                - type: object
-                  examples:
-                    - Signs: 0utplayyyy
-      tags:
-        - Database
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      summary: Find a specific document in a database
-      description: |
-        Gets all documents out of the provided database, by using the provided
-        search filter.
-
-        One of the following scopes is needed to execute the request:
-          - `cloudnet_rest:database_read`
-          - `cloudnet_rest:database_find`
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  examples:
-                    - Name: Peter
-                    - LastName: Parker
-        '400':
-          $ref: '#/components/responses/Problem'
         '401':
           $ref: '#/components/responses/Problem'
         '403':
