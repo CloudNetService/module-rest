@@ -81,7 +81,8 @@ public final class V3HttpHandlerDatabase {
     return JsonResponse.builder().body(Map.of("count", database.documentCount()));
   }
 
-  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.POST)
+
+  @RequestHandler(path = "/api/v3/database/{name}/document", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_insert"})
   public @NonNull IntoResponse<?> handleInsert(
     @NonNull @RequestPathParam("name") String name,
@@ -110,8 +111,8 @@ public final class V3HttpHandlerDatabase {
     }
   }
 
-  @RequestHandler(path = "/api/v3/database/{name}/get")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_get"})
+  @RequestHandler(path = "/api/v3/database/{name}/document")
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_document_get"})
   public @NonNull IntoResponse<?> handleGetRequest(
     @NonNull @RequestPathParam("name") String name,
     @NonNull @FirstRequestQueryParam("key") String key
@@ -120,8 +121,8 @@ public final class V3HttpHandlerDatabase {
     return JsonResponse.builder().body(DocumentFactory.json().newDocument("result", database.get(key)));
   }
 
-  @RequestHandler(path = "/api/v3/database/{name}/find")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_find"})
+  @RequestHandler(path = "/api/v3/database/{name}/document/find")
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_document_find"})
   public @NonNull IntoResponse<?> handleFindRequest(
     @NonNull @RequestPathParam("name") String name,
     @NonNull @RequestTypedBody Map<String, String> filter
@@ -130,9 +131,9 @@ public final class V3HttpHandlerDatabase {
     return JsonResponse.builder().body(database.find(filter));
   }
 
-  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.DELETE)
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_delete"})
-  public @NonNull IntoResponse<?> handleDeleteRequest(
+  @RequestHandler(path = "/api/v3/database/{name}/document", method = HttpMethod.DELETE)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_document_delete"})
+  public @NonNull IntoResponse<?> handleDocumentDeleteRequest(
     @NonNull @RequestPathParam("name") String name,
     @NonNull @FirstRequestQueryParam("key") String key
   ) {
@@ -140,11 +141,25 @@ public final class V3HttpHandlerDatabase {
     if (database.delete(key)) {
       return HttpResponseCode.NO_CONTENT;
     }
-
     return ProblemDetail.builder()
       .status(HttpResponseCode.OK)
       .type("database-delete-failed")
       .title("Database Delete Failed")
       .detail("The database had nothing to delete. The key was not associated with any data.");
+  }
+
+  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.DELETE)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_delete"})
+  public @NonNull IntoResponse<?> handleDatabaseDeleteRequest(
+    @NonNull @RequestPathParam("name") String name
+  ) {
+    if (this.databaseProvider.deleteDatabase(name)) {
+      return HttpResponseCode.NO_CONTENT;
+    }
+    return ProblemDetail.builder()
+      .status(HttpResponseCode.NOT_FOUND)
+      .type("database-delete-failed")
+      .title("Database Delete Failed")
+      .detail("The provided database was not found.");
   }
 }
